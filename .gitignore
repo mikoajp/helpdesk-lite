@@ -42,3 +42,5 @@ tmp_*
 # Local documentation (keep only README.md)
 *.md
 !README.md
+!PROGRESS.md
+!NEXT_STEPS.md
