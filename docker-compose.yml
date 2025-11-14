@@ -1,0 +1,64 @@
+version: '3.8'
+
+services:
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: helpdesk_backend
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./backend:/var/www/html
+    environment:
+      - APP_ENV=local
+      - APP_DEBUG=true
+    depends_on:
+      - db
+      - redis
+    networks:
+      - helpdesk_network
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: helpdesk_frontend
+    ports:
+      - "4200:4200"
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
+    depends_on:
+      - backend
+    networks:
+      - helpdesk_network
+
+  db:
+    image: postgres:16
+    container_name: helpdesk_db
+    environment:
+      POSTGRES_DB: helpdesk
+      POSTGRES_USER: app
+      POSTGRES_PASSWORD: app
+    ports:
+      - "5432:5432"
+    volumes:
+      - db_data:/var/lib/postgresql/data
+    networks:
+      - helpdesk_network
+
+  redis:
+    image: redis:7-alpine
+    container_name: helpdesk_redis
+    ports:
+      - "6379:6379"
+    networks:
+      - helpdesk_network
+
+volumes:
+  db_data:
+
+networks:
+  helpdesk_network:
+    driver: bridge
