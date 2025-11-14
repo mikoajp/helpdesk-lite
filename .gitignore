@@ -38,3 +38,7 @@ frontend/storybook-static/
 
 # Temp files
 tmp_*
+
+# Local documentation (keep only README.md)
+*.md
+!README.md
