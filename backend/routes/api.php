@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Api\AuthController;
+use App\Http\Controllers\Api\ExternalDataController;
 use App\Http\Controllers\Api\HealthController;
 use App\Http\Controllers\Api\TicketController;
 use Illuminate\Support\Facades\Route;
@@ -24,4 +25,7 @@ Route::middleware('auth:sanctum')->group(function () {
     
     // Ticket status changes history
     Route::get('/tickets/{id}/status-changes', [TicketController::class, 'statusChanges']);
+    
+    // External data integration
+    Route::get('/external-data', [ExternalDataController::class, 'getExchangeRates']);
 });
