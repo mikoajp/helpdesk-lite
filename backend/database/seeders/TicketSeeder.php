@@ -18,7 +18,12 @@ class TicketSeeder extends Seeder
             $query->where('name', 'agent');
         })->first();
 
+        $admin = User::whereHas('role', function ($query) {
+            $query->where('name', 'admin');
+        })->first();
+
         $tickets = [
+            // Reporter's tickets
             [
                 'title' => 'Cannot login to the system',
                 'description' => 'I am getting error 500 when trying to login. This started happening this morning.',
@@ -63,6 +68,26 @@ class TicketSeeder extends Seeder
                 'reporter_id' => $reporter->id,
                 'assignee_id' => $agent->id,
                 'tags' => json_encode(['documentation']),
+            ],
+            // Agent's tickets (so reporter cannot see them)
+            [
+                'title' => 'Agent reported bug in export feature',
+                'description' => 'Export to CSV is not working properly for large datasets.',
+                'priority' => 'medium',
+                'status' => 'open',
+                'reporter_id' => $agent->id,
+                'assignee_id' => $admin->id,
+                'tags' => json_encode(['bug', 'export']),
+            ],
+            // Admin's tickets (so reporter cannot see them)
+            [
+                'title' => 'Server maintenance needed',
+                'description' => 'We need to schedule server maintenance for next week.',
+                'priority' => 'high',
+                'status' => 'open',
+                'reporter_id' => $admin->id,
+                'assignee_id' => $agent->id,
+                'tags' => json_encode(['maintenance', 'infrastructure']),
             ],
         ];
 

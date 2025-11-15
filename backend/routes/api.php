@@ -14,5 +14,14 @@ Route::post('/auth/login', [AuthController::class, 'login']);
 Route::middleware('auth:sanctum')->group(function () {
     Route::post('/auth/logout', [AuthController::class, 'logout']);
     Route::get('/auth/me', [AuthController::class, 'me']);
+    
+    // Tickets CRUD
     Route::get('/tickets', [TicketController::class, 'index']);
+    Route::get('/tickets/{id}', [TicketController::class, 'show']);
+    Route::post('/tickets', [TicketController::class, 'store']);
+    Route::put('/tickets/{id}', [TicketController::class, 'update']);
+    Route::delete('/tickets/{id}', [TicketController::class, 'destroy']);
+    
+    // Ticket status changes history
+    Route::get('/tickets/{id}/status-changes', [TicketController::class, 'statusChanges']);
 });
