@@ -4,11 +4,18 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Models\Ticket;
+use App\Services\TriageService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
 class TicketController extends Controller
 {
+    private TriageService $triageService;
+
+    public function __construct(TriageService $triageService)
+    {
+        $this->triageService = $triageService;
+    }
     public function index(Request $request)
     {
         $user = Auth::user();
@@ -243,5 +250,35 @@ class TicketController extends Controller
                 ];
             }),
         ]);
+    }
+
+    public function triageSuggest(int $id)
+    {
+        $user = Auth::user();
+        
+        $ticket = Ticket::query()
+            ->with(['reporter.role', 'assignee.role'])
+            ->findOrFail($id);
+
+        // Check authorization: reporter can only access their own tickets
+        if ($user->role->isReporter() && $ticket->reporter_id !== $user->id) {
+            return response()->json([
+                'message' => 'Forbidden'
+            ], 403);
+        }
+
+        try {
+            $suggestion = $this->triageService->suggestTriage($ticket);
+            
+            return response()->json($suggestion);
+        } catch (\Exception $e) {
+            return response()->json([
+                'error' => [
+                    'code' => 'triage_failed',
+                    'message' => 'Failed to generate triage suggestion',
+                    'details' => $e->getMessage(),
+                ],
+            ], 500);
+        }
     }
 }

@@ -31,4 +31,12 @@ return [
         ],
     ],
 
+    'llm' => [
+        'enabled' => env('LLM_ENABLED', false),
+        'provider' => env('LLM_PROVIDER', 'openai'), // openai, anthropic, etc.
+        'api_key' => env('LLM_API_KEY'),
+        'model' => env('LLM_MODEL', 'gpt-5'),
+        'timeout' => env('LLM_TIMEOUT', 10),
+    ],
+
 ];
