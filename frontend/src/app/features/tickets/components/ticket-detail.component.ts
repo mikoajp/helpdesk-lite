@@ -9,7 +9,7 @@ import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { MatDividerModule } from '@angular/material/divider';
 import { TicketsService, Ticket, TicketStatusChange, TriageSuggestion } from '../services/tickets.service';
-import { ExternalDataService, ExchangeRateResponse } from '../../../core/services/external-data.service';
+import { ExternalDataService, ExternalUserResponse } from '../../../core/services/external-data.service';
 import { AuthService } from '../../../core/services/auth.service';
 
 @Component({
@@ -161,27 +161,20 @@ import { AuthService } from '../../../core/services/auth.service';
 
             <mat-card class="external-data-card">
               <mat-card-header>
-                <mat-card-title>Exchange Rates</mat-card-title>
+                <mat-card-title>Reporter External Profile</mat-card-title>
               </mat-card-header>
               <mat-card-content>
-                @if (exchangeRatesLoading()) {
+                @if (externalUserLoading()) {
                   <mat-spinner diameter="30"></mat-spinner>
-                } @else if (exchangeRates()) {
-                  <div class="exchange-rates">
-                    <p><strong>Base:</strong> {{ exchangeRates()!.base }}</p>
-                    <p><strong>Date:</strong> {{ exchangeRates()!.date }}</p>
-                    <mat-divider></mat-divider>
-                    @for (rate of getRatesArray(); track rate.currency) {
-                      <div class="rate-item">
-                        <span>{{ rate.currency }}:</span>
-                        <strong>{{ rate.value }}</strong>
-                      </div>
-                    }
+                } @else if (externalUser() && externalUser()!.user) {
+                  <div class="external-user">
+                    <p>{{ getExternalUserDisplay() }}</p>
+                    <small class="source">Source: JSONPlaceholder</small>
                   </div>
                 } @else {
-                  <button mat-button (click)="loadExchangeRates()">
+                  <button mat-button (click)="loadExternalUser(ticket()!.id)">
                     <mat-icon>refresh</mat-icon>
-                    Load Rates
+                    Load External User
                   </button>
                 }
               </mat-card-content>
@@ -308,7 +301,7 @@ import { AuthService } from '../../../core/services/auth.service';
       }
     }
 
-    .exchange-rates {
+    .external-user {
       .rate-item {
         display: flex;
         justify-content: space-between;
@@ -330,11 +323,11 @@ import { AuthService } from '../../../core/services/auth.service';
   `]
 })
 export class TicketDetailComponent implements OnInit {
-  statusChanges = signal<TicketStatusChange[]>([]);
+  statusChanges = signal<TicketStatusChange[]>([]); // status change history
   statusChangesLoading = signal(false);
-  triageSuggestion = signal<TriageSuggestion | null>(null);
+  triageSuggestion = signal<TriageSuggestion | null>(null); // latest AI suggestion
   triageLoading = signal(false);
-  externalUser = signal<ExternalUserResponse | null>(null);
+  externalUser = signal<ExternalUserResponse | null>(null); // external profile data
   externalUserLoading = signal(false);
 
   // Computed signal for ticket
