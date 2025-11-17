@@ -3,15 +3,15 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
-use App\Services\ExchangeRateService;
+use App\Contracts\ExchangeRateServiceInterface;
 use App\Http\Requests\External\GetExchangeRatesRequest;
 use Illuminate\Http\Request;
 
 class ExternalDataController extends Controller
 {
-    private ExchangeRateService $exchangeRateService;
+    private ExchangeRateServiceInterface $exchangeRateService;
 
-    public function __construct(ExchangeRateService $exchangeRateService)
+    public function __construct(ExchangeRateServiceInterface $exchangeRateService)
     {
         $this->exchangeRateService = $exchangeRateService;
     }
