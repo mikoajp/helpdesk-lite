@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Enums\RoleName;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -23,16 +24,16 @@ class Role extends Model
     // Helper methods for role checking
     public function isAdmin(): bool
     {
-        return $this->name === 'admin';
+        return $this->name === RoleName::ADMIN->value;
     }
 
     public function isAgent(): bool
     {
-        return $this->name === 'agent';
+        return $this->name === RoleName::AGENT->value;
     }
 
     public function isReporter(): bool
     {
-        return $this->name === 'reporter';
+        return $this->name === RoleName::REPORTER->value;
     }
 }

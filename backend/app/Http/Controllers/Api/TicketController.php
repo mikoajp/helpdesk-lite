@@ -3,6 +3,9 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Enums\TicketStatus;
+use App\Http\Requests\Ticket\StoreTicketRequest;
+use App\Http\Requests\Ticket\UpdateTicketRequest;
 use App\Models\Ticket;
 use App\Services\TriageService;
 use Illuminate\Http\Request;
@@ -57,20 +60,13 @@ class TicketController extends Controller
         ]);
     }
 
-    public function show(Request $request, int $id)
+    public function show(int $id)
     {
-        $user = Auth::user();
-        
         $ticket = Ticket::query()
             ->with(['reporter.role', 'assignee.role', 'statusChanges.user'])
             ->findOrFail($id);
 
-        // Check authorization: reporter can only see their own tickets
-        if ($user->role->isReporter() && $ticket->reporter_id !== $user->id) {
-            return response()->json([
-                'message' => 'Forbidden'
-            ], 403);
-        }
+        $this->authorize('view', $ticket);
 
         return response()->json([
             'id' => $ticket->id,
@@ -107,16 +103,9 @@ class TicketController extends Controller
         ]);
     }
 
-    public function store(Request $request)
+    public function store(StoreTicketRequest $request)
     {
-        $validated = $request->validate([
-            'title' => 'required|string|max:255',
-            'description' => 'required|string',
-            'priority' => 'required|in:low,medium,high',
-            'assignee_id' => 'nullable|exists:users,id',
-            'tags' => 'nullable|array',
-            'tags.*' => 'string|max:50',
-        ]);
+        $validated = $request->validated();
 
         $user = Auth::user();
         
@@ -124,7 +113,7 @@ class TicketController extends Controller
             'title' => $validated['title'],
             'description' => $validated['description'],
             'priority' => $validated['priority'],
-            'status' => 'open',
+            'status' => TicketStatus::OPEN,
             'reporter_id' => $user->id,
             'assignee_id' => $validated['assignee_id'] ?? null,
             'tags' => $validated['tags'] ?? [],
@@ -154,28 +143,13 @@ class TicketController extends Controller
         ], 201);
     }
 
-    public function update(Request $request, int $id)
+    public function update(UpdateTicketRequest $request, int $id)
     {
-        $validated = $request->validate([
-            'title' => 'sometimes|string|max:255',
-            'description' => 'sometimes|string',
-            'priority' => 'sometimes|in:low,medium,high',
-            'status' => 'sometimes|in:open,in_progress,resolved,closed',
-            'assignee_id' => 'nullable|exists:users,id',
-            'tags' => 'nullable|array',
-            'tags.*' => 'string|max:50',
-        ]);
+        $validated = $request->validated();
 
-        $user = Auth::user();
-        
         $ticket = Ticket::findOrFail($id);
 
-        // Check authorization: reporter can only update their own tickets
-        if ($user->role->isReporter() && $ticket->reporter_id !== $user->id) {
-            return response()->json([
-                'message' => 'Forbidden'
-            ], 403);
-        }
+        $this->authorize('update', $ticket);
 
         $ticket->update($validated);
         $ticket->load(['reporter.role', 'assignee.role']);
@@ -204,16 +178,9 @@ class TicketController extends Controller
 
     public function destroy(int $id)
     {
-        $user = Auth::user();
-        
         $ticket = Ticket::findOrFail($id);
 
-        // Check authorization: reporter can only delete their own tickets
-        if ($user->role->isReporter() && $ticket->reporter_id !== $user->id) {
-            return response()->json([
-                'message' => 'Forbidden'
-            ], 403);
-        }
+        $this->authorize('delete', $ticket);
 
         $ticket->delete();
 
@@ -222,18 +189,11 @@ class TicketController extends Controller
 
     public function statusChanges(int $id)
     {
-        $user = Auth::user();
-        
         $ticket = Ticket::query()
             ->with(['statusChanges.user'])
             ->findOrFail($id);
 
-        // Check authorization: reporter can only see their own tickets
-        if ($user->role->isReporter() && $ticket->reporter_id !== $user->id) {
-            return response()->json([
-                'message' => 'Forbidden'
-            ], 403);
-        }
+        $this->authorize('view', $ticket);
 
         return response()->json([
             'data' => $ticket->statusChanges->map(function ($change) {
@@ -254,18 +214,11 @@ class TicketController extends Controller
 
     public function triageSuggest(int $id)
     {
-        $user = Auth::user();
-        
         $ticket = Ticket::query()
             ->with(['reporter.role', 'assignee.role'])
             ->findOrFail($id);
 
-        // Check authorization: reporter can only access their own tickets
-        if ($user->role->isReporter() && $ticket->reporter_id !== $user->id) {
-            return response()->json([
-                'message' => 'Forbidden'
-            ], 403);
-        }
+        $this->authorize('view', $ticket);
 
         try {
             $suggestion = $this->triageService->suggestTriage($ticket);

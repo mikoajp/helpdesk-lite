@@ -72,17 +72,17 @@ class User extends Authenticatable
     // Helper methods for role checking
     public function isAdmin(): bool
     {
-        return $this->role->name === 'admin';
+        return $this->role->isAdmin();
     }
 
     public function isAgent(): bool
     {
-        return $this->role->name === 'agent';
+        return $this->role->isAgent();
     }
 
     public function isReporter(): bool
     {
-        return $this->role->name === 'reporter';
+        return $this->role->isReporter();
     }
 
     public function canViewTicket(Ticket $ticket): bool
