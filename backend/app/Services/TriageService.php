@@ -5,6 +5,7 @@ namespace App\Services;
 use App\Contracts\TriageServiceInterface;
 use App\Enums\TicketPriority;
 use App\Enums\TicketStatus;
+use App\DTOs\TriageSuggestion;
 use App\Models\Ticket;
 use Illuminate\Support\Facades\Log;
 
@@ -17,7 +18,7 @@ class TriageService implements TriageServiceInterface
      * @param Ticket $ticket
      * @return array
      */
-    public function suggestTriage(Ticket $ticket): array
+    public function suggestTriage(Ticket $ticket): TriageSuggestion
     {
         // Check if LLM integration is enabled
         $useLLM = config('services.llm.enabled', false);
@@ -35,7 +36,7 @@ class TriageService implements TriageServiceInterface
      * @param Ticket $ticket
      * @return array
      */
-    private function suggestWithRules(Ticket $ticket): array
+    private function suggestWithRules(Ticket $ticket): TriageSuggestion
     {
         $suggestedPriority = $this->determinePriority($ticket);
         $suggestedStatus = $this->determineStatus($ticket);
@@ -49,14 +50,14 @@ class TriageService implements TriageServiceInterface
             'confidence' => $confidence,
         ]);
 
-        return [
-            'ticket_id' => $ticket->id,
-            'suggested_priority' => $suggestedPriority,
-            'suggested_status' => $suggestedStatus,
-            'summary' => $summary,
-            'confidence' => $confidence,
-            'method' => 'rules',
-        ];
+        return new TriageSuggestion(
+            ticketId: $ticket->id,
+            suggestedPriority: $suggestedPriority,
+            suggestedStatus: $suggestedStatus,
+            summary: $summary,
+            confidence: $confidence,
+            method: 'rules',
+        );
     }
 
     /**
@@ -65,7 +66,7 @@ class TriageService implements TriageServiceInterface
      * @param Ticket $ticket
      * @return array
      */
-    private function suggestWithLLM(Ticket $ticket): array
+    private function suggestWithLLM(Ticket $ticket): TriageSuggestion
     {
         // This is a mock LLM response
         // In production, this would call an actual LLM API (OpenAI, Claude, etc.)
@@ -101,7 +102,7 @@ class TriageService implements TriageServiceInterface
      * @param Ticket $ticket
      * @return array
      */
-    private function mockLLMAnalysis(Ticket $ticket): array
+    private function mockLLMAnalysis(Ticket $ticket): TriageSuggestion
     {
         // Use rule-based logic as base, but enhance with "LLM-like" reasoning
         $priority = $this->determinePriority($ticket);
@@ -110,15 +111,15 @@ class TriageService implements TriageServiceInterface
         // Generate more sophisticated summary for LLM mode
         $summary = $this->generateLLMSummary($ticket, $priority, $status);
         
-        return [
-            'ticket_id' => $ticket->id,
-            'suggested_priority' => $priority,
-            'suggested_status' => $status,
-            'summary' => $summary,
-            'confidence' => 0.85, // LLM typically has higher confidence
-            'method' => 'llm',
-            'reasoning' => $this->generateReasoning($ticket, $priority, $status),
-        ];
+        return new TriageSuggestion(
+            ticketId: $ticket->id,
+            suggestedPriority: $priority,
+            suggestedStatus: $status,
+            summary: $summary,
+            confidence: 0.85,
+            method: 'llm',
+            reasoning: $this->generateReasoning($ticket, $priority, $status),
+        );
     }
 
     /**

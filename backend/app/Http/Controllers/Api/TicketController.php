@@ -119,6 +119,6 @@ class TicketController extends Controller
         $this->authorize('view', $ticket);
 
         $suggestion = $this->triageService->suggestTriage($ticket);
-        return response()->json($suggestion);
+        return response()->json($suggestion->toArray());
     }
 }
