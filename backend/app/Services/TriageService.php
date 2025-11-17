@@ -2,10 +2,13 @@
 
 namespace App\Services;
 
+use App\Contracts\TriageServiceInterface;
+use App\Enums\TicketPriority;
+use App\Enums\TicketStatus;
 use App\Models\Ticket;
 use Illuminate\Support\Facades\Log;
 
-class TriageService
+class TriageService implements TriageServiceInterface
 {
     /**
      * Generate triage suggestions for a ticket using deterministic rules
@@ -139,41 +142,35 @@ class TriageService
         $content = $title . ' ' . $description;
 
         // High priority keywords
-        $highPriorityKeywords = [
-            'urgent', 'critical', 'down', 'outage', 'broken', 'error 500',
-            'cannot login', 'security', 'data loss', 'crash', 'fatal'
-        ];
+        $highPriorityKeywords = config('triage.keywords.high_priority', []);
 
         // Low priority keywords
-        $lowPriorityKeywords = [
-            'feature request', 'enhancement', 'nice to have', 'cosmetic',
-            'minor', 'typo', 'documentation', 'suggestion'
-        ];
+        $lowPriorityKeywords = config('triage.keywords.low_priority', []);
 
         // Check tags first
         if (in_array('urgent', $tags) || in_array('critical', $tags)) {
-            return 'high';
+            return TicketPriority::HIGH->value;
         }
 
         if (in_array('enhancement', $tags) || in_array('feature', $tags)) {
-            return 'low';
+            return TicketPriority::LOW->value;
         }
 
         // Check content for keywords
         foreach ($highPriorityKeywords as $keyword) {
             if (str_contains($content, $keyword)) {
-                return 'high';
+                return TicketPriority::HIGH->value;
             }
         }
 
         foreach ($lowPriorityKeywords as $keyword) {
             if (str_contains($content, $keyword)) {
-                return 'low';
+                return TicketPriority::LOW->value;
             }
         }
 
         // Default to medium if current priority is not set
-        return $ticket->priority ?? 'medium';
+        return $ticket->priority?->value ?? TicketPriority::MEDIUM->value;
     }
 
     /**
@@ -185,28 +182,29 @@ class TriageService
     private function determineStatus(Ticket $ticket): string
     {
         // If ticket has assignee and is open, suggest in_progress
-        if ($ticket->assignee_id && $ticket->status === 'open') {
-            return 'in_progress';
+        if ($ticket->assignee_id && $ticket->status === TicketStatus::OPEN) {
+            return TicketStatus::IN_PROGRESS->value;
         }
 
         // If ticket is old and in_progress, suggest resolved
         $daysOld = $ticket->created_at?->diffInDays(now()) ?? 0;
-        if ($daysOld > 7 && $ticket->status === 'in_progress') {
-            return 'resolved';
+        $threshold = (int) config('triage.rules.resolved_after_days', 7);
+        if ($daysOld > $threshold && $ticket->status === TicketStatus::IN_PROGRESS) {
+            return TicketStatus::RESOLVED->value;
         }
 
         // Check for resolution keywords
         $description = strtolower($ticket->description);
-        $resolutionKeywords = ['fixed', 'resolved', 'completed', 'done', 'solved'];
+        $resolutionKeywords = config('triage.keywords.resolution', []);
         
         foreach ($resolutionKeywords as $keyword) {
             if (str_contains($description, $keyword)) {
-                return 'resolved';
+                return TicketStatus::RESOLVED->value;
             }
         }
 
         // Keep current status if it makes sense
-        return $ticket->status;
+        return $ticket->status->value;
     }
 
     /**
@@ -286,9 +284,9 @@ class TriageService
         }
 
         // Status reasoning
-        if ($status === 'in_progress' && $ticket->assignee_id) {
+        if ($status === TicketStatus::IN_PROGRESS->value && $ticket->assignee_id) {
             $factors[] = "An assignee is set, suggesting active work";
-        } elseif ($status === 'resolved') {
+        } elseif ($status === TicketStatus::RESOLVED->value) {
             $factors[] = "Resolution indicators were found in the ticket";
         }
 

@@ -9,15 +9,15 @@ use App\Http\Requests\Ticket\UpdateTicketRequest;
 use App\Http\Resources\TicketResource;
 use App\Http\Resources\TicketStatusChangeResource;
 use App\Models\Ticket;
-use App\Services\TriageService;
+use App\Contracts\TriageServiceInterface;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
 class TicketController extends Controller
 {
-    private TriageService $triageService;
+    private TriageServiceInterface $triageService;
 
-    public function __construct(TriageService $triageService)
+    public function __construct(TriageServiceInterface $triageService)
     {
         $this->triageService = $triageService;
     }
