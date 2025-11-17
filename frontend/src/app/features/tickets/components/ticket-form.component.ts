@@ -246,8 +246,8 @@ export class TicketFormComponent implements OnInit {
           assignee_id: ticket.assignee_id ?? null
         });
         const raw = Array.isArray(ticket.tags) ? ticket.tags : (typeof ticket.tags === 'string' ? ticket.tags.split(',') : []);
-        const norm = Array.from(new Set((raw || []).map((x: any) => typeof x === 'string' ? x.trim() : (x?.name ?? String(x))).filter(Boolean)));
-        this.tags.set(norm);
+        const norm = Array.from(new Set((raw || []).map((x: any) => typeof x === 'string' ? x.trim() : (x?.name ?? String(x))).filter(Boolean))) as string[];
+        this.tags.set(norm as string[]);
         this.loading.set(false);
       },
       error: (err) => {
@@ -262,7 +262,7 @@ export class TicketFormComponent implements OnInit {
     const input = (event.value || '').trim();
     if (!input) { if (event.chipInput) event.chipInput.clear(); return; }
     const parts = input.split(',').map(p => p.trim()).filter(Boolean);
-    this.tags.update(tags => Array.from(new Set([...tags, ...parts])));
+    this.tags.update(tags => Array.from(new Set([...tags, ...parts])) as string[]);
     if (event.chipInput) event.chipInput.clear();
   }
 
@@ -270,7 +270,7 @@ export class TicketFormComponent implements OnInit {
     const input = (value || '').trim();
     if (!input) return;
     const parts = input.split(',').map(p => p.trim()).filter(Boolean);
-    this.tags.update(tags => Array.from(new Set([...tags, ...parts])));
+    this.tags.update(tags => Array.from(new Set([...tags, ...parts])) as string[]);
   }
 
   removeTag(tag: string): void {
