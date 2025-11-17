@@ -13,7 +13,6 @@ import { AuthService } from './core/services/auth.service';
       <app-header></app-header>
     }
     <main>
-      <h1>Hello, helpdesk-frontend</h1>
       <router-outlet></router-outlet>
     </main>
   `,
