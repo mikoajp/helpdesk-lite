@@ -111,7 +111,7 @@ export class TicketsService {
         map((resp) => {
           const t = (resp?.data ?? resp) as any;
           const raw = Array.isArray(t?.tags) ? t.tags : (typeof t?.tags === 'string' ? t.tags.split(',') : []);
-          const norm = Array.from(new Set((raw || []).map((x: any) => typeof x === 'string' ? x.trim() : (x?.name ?? String(x))).filter(Boolean)));
+          const norm = Array.from(new Set((raw || []).map((x: any) => typeof x === 'string' ? x.trim() : (x?.name ?? String(x))).filter(Boolean))) as string[];
           return { ...t, tags: norm } as Ticket;
         }),
         tap({
