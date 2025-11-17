@@ -334,8 +334,8 @@ export class TicketDetailComponent implements OnInit {
   statusChangesLoading = signal(false);
   triageSuggestion = signal<TriageSuggestion | null>(null);
   triageLoading = signal(false);
-  exchangeRates = signal<ExchangeRateResponse | null>(null);
-  exchangeRatesLoading = signal(false);
+  externalUser = signal<ExternalUserResponse | null>(null);
+  externalUserLoading = signal(false);
 
   // Computed signal for ticket
   ticket = () => this.ticketsService.currentTicket();
@@ -354,7 +354,7 @@ export class TicketDetailComponent implements OnInit {
     if (id) {
       this.loadTicket(id);
       this.loadStatusChanges(id);
-      this.loadExchangeRates();
+      this.loadExternalUser(id);
     }
   }
 
@@ -422,24 +422,25 @@ export class TicketDetailComponent implements OnInit {
     this.snackBar.open('Triage suggestion rejected', 'Close', { duration: 2000 });
   }
 
-  loadExchangeRates(): void {
-    this.exchangeRatesLoading.set(true);
-    this.externalDataService.getExchangeRates().subscribe({
-      next: (rates) => {
-        this.exchangeRates.set(rates);
-        this.exchangeRatesLoading.set(false);
+  loadExternalUser(ticketId: number): void {
+    this.externalUserLoading.set(true);
+    this.externalDataService.getExternalUser(ticketId).subscribe({
+      next: (resp) => {
+        this.externalUser.set(resp);
+        this.externalUserLoading.set(false);
       },
       error: () => {
-        this.exchangeRatesLoading.set(false);
-        this.snackBar.open('Failed to load exchange rates', 'Close', { duration: 3000 });
+        this.externalUserLoading.set(false);
+        this.snackBar.open('Failed to load external user', 'Close', { duration: 3000 });
       }
     });
   }
 
-  getRatesArray(): Array<{ currency: string; value: number }> {
-    const rates = this.exchangeRates();
-    if (!rates) return [];
-    return Object.entries(rates.rates).map(([currency, value]) => ({ currency, value }));
+  getExternalUserDisplay(): string {
+    const data = this.externalUser();
+    if (!data || !data.user) return '';
+    const u = data.user;
+    return `${u.name} (${u.username}) • ${u.email} • ${u.company}`;
   }
 
   editTicket(): void {
