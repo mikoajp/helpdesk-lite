@@ -178,3 +178,58 @@ Definition of Done
 
 Konwencje repo
 - Branch: feature/…, fix/…, chore/…; Commity: Conventional Commits (feat:, fix:, docs:, chore:, test:). Code style: Prettier/ESLint (front), Pint/PHPCS (opcjonalnie back – poza timeboxem).
+
+## Status Realizacji
+
+### ✅ Faza 0: Przygotowanie repo i środowiska
+- Inicjalizacja repo z .editorconfig, .gitignore, LICENSE, .env.example
+- Docker Compose z konfiguracją dla backend, frontend, db, redis
+
+### ✅ Faza 1: Backend skeleton (Laravel) + autoryzacja i modele
+- Projekt Laravel 11 z konfiguracją Sanctum
+- Migracje i seedy dla Role, Users, Tickets, TicketStatusChanges
+- Polityki dostępu wg ról (reporter/agent/admin)
+
+### ✅ Faza 2: Tickets API (CRUD + filtrowanie + historia statusu)
+- Endpointy CRUD dla ticketów z filtrowaniem
+- Automatyczne logowanie zmian statusu
+- Testy integracyjne i jednostkowe
+
+### ✅ Faza 3: Integracja z API zewnętrznym + cache
+- Endpoint GET /external-data z integracją ExchangeRate.host
+- Cache Redis z fallbackiem
+- Obsługa sukcesu/błędu z timeoutem
+
+### ✅ Faza 4: Triage Asystent (LLM, mock)
+- Endpoint POST /tickets/{id}/triage-suggest
+- Mock z deterministycznymi regułami
+- Możliwość Accept/Reject sugestii
+
+### ✅ Faza 5: Frontend skeleton (Angular) + routing + stan
+- Aplikacja Angular 17 ze strukturą modularną
+- Core (auth, guards, interceptors, services)
+- Shared (komponenty współdzielone)
+- Features (auth, tickets)
+- Angular Material z responsive design
+- Signals do zarządzania stanem
+- Routing z guard'ami
+- Komponenty:
+  - LoginComponent - logowanie z demo credentials
+  - TicketListComponent - lista ticketów z filtrowaniem
+  - TicketDetailComponent - szczegóły ticketu z historią statusów, triage assistant, external data
+  - TicketFormComponent - formularz tworzenia/edycji ticketu
+  - HeaderComponent - nawigacja z user menu
+
+### 🔄 Faza 6: Design System + Storybook
+- TODO: Konfiguracja Storybook
+- TODO: Komponenty PriorityBadge, TicketCard, TriageSuggestionPanel
+- TODO: Globalne tokeny (colors, spacing, radius, typography)
+
+### 🔄 Faza 7: Integracje front-back
+- TODO: End-to-end testy podstawowych ścieżek
+- TODO: Finalne połączenie wszystkich funkcjonalności
+
+### 🔄 Faza 8: Testy + Docker Compose + finalizacja
+- TODO: Kompletny zestaw testów
+- TODO: Finalizacja Docker Compose
+- TODO: Dokumentacja kompletna z screencastem
