@@ -6,6 +6,8 @@ use App\Http\Controllers\Controller;
 use App\Enums\TicketStatus;
 use App\Http\Requests\Ticket\StoreTicketRequest;
 use App\Http\Requests\Ticket\UpdateTicketRequest;
+use App\Http\Resources\TicketResource;
+use App\Http\Resources\TicketStatusChangeResource;
 use App\Models\Ticket;
 use App\Services\TriageService;
 use Illuminate\Http\Request;
@@ -32,32 +34,10 @@ class TicketController extends Controller
             ->byTag($request->query('tag'))
             ->orderByDesc('created_at');
 
-        $tickets = $query->limit(50)->get()->map(function (Ticket $t) {
-            return [
-                'id' => $t->id,
-                'title' => $t->title,
-                'priority' => $t->priority,
-                'status' => $t->status,
-                'reporter' => [
-                    'id' => $t->reporter?->id,
-                    'name' => $t->reporter?->name,
-                    'role' => $t->reporter?->role?->name,
-                ],
-                'assignee' => $t->assignee ? [
-                    'id' => $t->assignee->id,
-                    'name' => $t->assignee->name,
-                    'role' => $t->assignee->role?->name,
-                ] : null,
-                'tags' => $t->tags ?? [],
-                'created_at' => $t->created_at?->toIso8601String(),
-                'updated_at' => $t->updated_at?->toIso8601String(),
-            ];
-        });
+        $tickets = $query->limit(50)->get();
 
-        return response()->json([
-            'data' => $tickets,
-            'count' => $tickets->count(),
-        ]);
+        return TicketResource::collection($tickets)
+            ->additional(['count' => $tickets->count()]);
     }
 
     public function show(int $id)
@@ -68,39 +48,7 @@ class TicketController extends Controller
 
         $this->authorize('view', $ticket);
 
-        return response()->json([
-            'id' => $ticket->id,
-            'title' => $ticket->title,
-            'description' => $ticket->description,
-            'priority' => $ticket->priority,
-            'status' => $ticket->status,
-            'reporter' => [
-                'id' => $ticket->reporter?->id,
-                'name' => $ticket->reporter?->name,
-                'role' => $ticket->reporter?->role?->name,
-            ],
-            'assignee' => $ticket->assignee ? [
-                'id' => $ticket->assignee->id,
-                'name' => $ticket->assignee->name,
-                'role' => $ticket->assignee->role?->name,
-            ] : null,
-            'tags' => $ticket->tags ?? [],
-            'created_at' => $ticket->created_at?->toIso8601String(),
-            'updated_at' => $ticket->updated_at?->toIso8601String(),
-            'status_changes' => $ticket->statusChanges->map(function ($change) {
-                return [
-                    'id' => $change->id,
-                    'old_status' => $change->old_status,
-                    'new_status' => $change->new_status,
-                    'comment' => $change->comment,
-                    'user' => [
-                        'id' => $change->user?->id,
-                        'name' => $change->user?->name,
-                    ],
-                    'created_at' => $change->created_at?->toIso8601String(),
-                ];
-            }),
-        ]);
+        return new TicketResource($ticket->loadMissing(['reporter.role', 'assignee.role', 'statusChanges.user']));
     }
 
     public function store(StoreTicketRequest $request)
@@ -121,26 +69,9 @@ class TicketController extends Controller
 
         $ticket->load(['reporter.role', 'assignee.role']);
 
-        return response()->json([
-            'id' => $ticket->id,
-            'title' => $ticket->title,
-            'description' => $ticket->description,
-            'priority' => $ticket->priority,
-            'status' => $ticket->status,
-            'reporter' => [
-                'id' => $ticket->reporter?->id,
-                'name' => $ticket->reporter?->name,
-                'role' => $ticket->reporter?->role?->name,
-            ],
-            'assignee' => $ticket->assignee ? [
-                'id' => $ticket->assignee->id,
-                'name' => $ticket->assignee->name,
-                'role' => $ticket->assignee->role?->name,
-            ] : null,
-            'tags' => $ticket->tags ?? [],
-            'created_at' => $ticket->created_at?->toIso8601String(),
-            'updated_at' => $ticket->updated_at?->toIso8601String(),
-        ], 201);
+        return (new TicketResource($ticket->loadMissing(['reporter.role', 'assignee.role'])))
+            ->response()
+            ->setStatusCode(201);
     }
 
     public function update(UpdateTicketRequest $request, int $id)
@@ -154,26 +85,7 @@ class TicketController extends Controller
         $ticket->update($validated);
         $ticket->load(['reporter.role', 'assignee.role']);
 
-        return response()->json([
-            'id' => $ticket->id,
-            'title' => $ticket->title,
-            'description' => $ticket->description,
-            'priority' => $ticket->priority,
-            'status' => $ticket->status,
-            'reporter' => [
-                'id' => $ticket->reporter?->id,
-                'name' => $ticket->reporter?->name,
-                'role' => $ticket->reporter?->role?->name,
-            ],
-            'assignee' => $ticket->assignee ? [
-                'id' => $ticket->assignee->id,
-                'name' => $ticket->assignee->name,
-                'role' => $ticket->assignee->role?->name,
-            ] : null,
-            'tags' => $ticket->tags ?? [],
-            'created_at' => $ticket->created_at?->toIso8601String(),
-            'updated_at' => $ticket->updated_at?->toIso8601String(),
-        ]);
+        return new TicketResource($ticket->loadMissing(['reporter.role', 'assignee.role']));
     }
 
     public function destroy(int $id)
@@ -195,21 +107,7 @@ class TicketController extends Controller
 
         $this->authorize('view', $ticket);
 
-        return response()->json([
-            'data' => $ticket->statusChanges->map(function ($change) {
-                return [
-                    'id' => $change->id,
-                    'old_status' => $change->old_status,
-                    'new_status' => $change->new_status,
-                    'comment' => $change->comment,
-                    'user' => [
-                        'id' => $change->user?->id,
-                        'name' => $change->user?->name,
-                    ],
-                    'created_at' => $change->created_at?->toIso8601String(),
-                ];
-            }),
-        ]);
+        return TicketStatusChangeResource::collection($ticket->statusChanges->load('user'));
     }
 
     public function triageSuggest(int $id)
