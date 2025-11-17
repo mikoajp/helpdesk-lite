@@ -31,7 +31,7 @@ class TicketSeeder extends Seeder
                 'status' => 'open',
                 'reporter_id' => $reporter->id,
                 'assignee_id' => null,
-                'tags' => json_encode(['auth', 'urgent', 'bug']),
+                'tags' => ['auth', 'urgent', 'bug'],
             ],
             [
                 'title' => 'Feature request: Dark mode',
@@ -40,7 +40,7 @@ class TicketSeeder extends Seeder
                 'status' => 'open',
                 'reporter_id' => $reporter->id,
                 'assignee_id' => $agent->id,
-                'tags' => json_encode(['feature', 'ui']),
+                'tags' => ['feature', 'ui'],
             ],
             [
                 'title' => 'Email notifications not working',
@@ -49,7 +49,7 @@ class TicketSeeder extends Seeder
                 'status' => 'in_progress',
                 'reporter_id' => $reporter->id,
                 'assignee_id' => $agent->id,
-                'tags' => json_encode(['email', 'notifications', 'bug']),
+                'tags' => ['email', 'notifications', 'bug'],
             ],
             [
                 'title' => 'Performance issue on dashboard',
@@ -58,7 +58,7 @@ class TicketSeeder extends Seeder
                 'status' => 'in_progress',
                 'reporter_id' => $reporter->id,
                 'assignee_id' => $agent->id,
-                'tags' => json_encode(['performance', 'dashboard']),
+                'tags' => ['performance', 'dashboard'],
             ],
             [
                 'title' => 'Documentation update needed',
@@ -67,7 +67,7 @@ class TicketSeeder extends Seeder
                 'status' => 'resolved',
                 'reporter_id' => $reporter->id,
                 'assignee_id' => $agent->id,
-                'tags' => json_encode(['documentation']),
+                'tags' => ['documentation'],
             ],
             // Agent's tickets (so reporter cannot see them)
             [
@@ -77,7 +77,7 @@ class TicketSeeder extends Seeder
                 'status' => 'open',
                 'reporter_id' => $agent->id,
                 'assignee_id' => $admin->id,
-                'tags' => json_encode(['bug', 'export']),
+                'tags' => ['bug', 'export'],
             ],
             // Admin's tickets (so reporter cannot see them)
             [
@@ -87,7 +87,7 @@ class TicketSeeder extends Seeder
                 'status' => 'open',
                 'reporter_id' => $admin->id,
                 'assignee_id' => $agent->id,
-                'tags' => json_encode(['maintenance', 'infrastructure']),
+                'tags' => ['maintenance', 'infrastructure'],
             ],
         ];
 

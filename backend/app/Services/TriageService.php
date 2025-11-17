@@ -316,11 +316,13 @@ class TriageService implements TriageServiceInterface
         }
 
         // Increase confidence if suggestions differ from current values
-        if ($suggestedPriority !== $ticket->priority) {
+        $currentPriority = $ticket->priority instanceof \BackedEnum ? $ticket->priority->value : (string) $ticket->priority;
+        $currentStatus = $ticket->status instanceof \BackedEnum ? $ticket->status->value : (string) $ticket->status;
+        if ($suggestedPriority !== $currentPriority) {
             $confidence += 0.1;
         }
 
-        if ($suggestedStatus !== $ticket->status) {
+        if ($suggestedStatus !== $currentStatus) {
             $confidence += 0.05;
         }
 
