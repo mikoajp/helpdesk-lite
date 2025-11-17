@@ -25,8 +25,10 @@ WORKDIR /var/www/html
 # Copy existing application directory contents
 COPY . /var/www/html
 
-# Install PHP dependencies
-RUN composer install --no-interaction --optimize-autoloader --no-dev
+# Install PHP dependencies (fix git safe dir + clean vendor to avoid VCS changes)
+RUN git config --global --add safe.directory /var/www/html \
+    && rm -rf vendor \
+    && composer install --no-interaction --prefer-dist --no-progress --optimize-autoloader --no-dev
 
 # Set permissions
 RUN chown -R www-data:www-data /var/www/html \
@@ -39,5 +41,4 @@ EXPOSE 8000
 CMD php artisan config:cache && \
     php artisan route:cache && \
     php artisan migrate --force && \
-    php artisan db:seed --force && \
     php artisan serve --host=0.0.0.0 --port=8000
