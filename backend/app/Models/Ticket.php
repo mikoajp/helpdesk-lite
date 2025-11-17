@@ -8,6 +8,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Casts\Attribute;
 
 class Ticket extends Model
 {
@@ -31,13 +32,29 @@ class Ticket extends Model
         'priority' => TicketPriority::class,
     ];
 
+    protected function status(): Attribute
+    {
+        return Attribute::make(
+            get: fn($value) => $value instanceof \BackedEnum ? $value->value : (string) $value,
+            set: fn($value) => $value,
+        );
+    }
+
+    protected function priority(): Attribute
+    {
+        return Attribute::make(
+            get: fn($value) => $value instanceof \BackedEnum ? $value->value : (string) $value,
+            set: fn($value) => $value,
+        );
+    }
+
     protected static function booted(): void
     {
         static::created(function (Ticket $ticket) {
             $ticket->statusChanges()->create([
                 'user_id' => auth()->id() ?? $ticket->reporter_id,
                 'old_status' => null,
-                'new_status' => $ticket->status,
+                'new_status' => $ticket->status instanceof \BackedEnum ? $ticket->status->value : (string) $ticket->status,
             ]);
         });
 
@@ -45,8 +62,8 @@ class Ticket extends Model
             if ($ticket->wasChanged('status')) {
                 $ticket->statusChanges()->create([
                     'user_id' => auth()->id() ?? $ticket->reporter_id,
-                    'old_status' => $ticket->getOriginal('status'),
-                    'new_status' => $ticket->status,
+                    'old_status' => $ticket->getOriginal('status') instanceof \BackedEnum ? $ticket->getOriginal('status')->value : (string) $ticket->getOriginal('status'),
+                    'new_status' => $ticket->status instanceof \BackedEnum ? $ticket->status->value : (string) $ticket->status,
                 ]);
             }
         });
@@ -68,18 +85,18 @@ class Ticket extends Model
     }
 
     // Query scopes for filtering
-    public function scopeByStatus($query, ?string $status)
+    public function scopeByStatus($query, $status = null)
     {
         if ($status) {
-            return $query->where('status', $status);
+            return $query->where('status', $status instanceof \BackedEnum ? $status->value : $status);
         }
         return $query;
     }
 
-    public function scopeByPriority($query, ?string $priority)
+    public function scopeByPriority($query, $priority = null)
     {
         if ($priority) {
-            return $query->where('priority', $priority);
+            return $query->where('priority', $priority instanceof \BackedEnum ? $priority->value : $priority);
         }
         return $query;
     }

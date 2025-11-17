@@ -13,8 +13,8 @@ class TicketResource extends JsonResource
             'id' => $this->id,
             'title' => $this->title,
             'description' => $this->when(isset($this->description), $this->description),
-            'priority' => (string) $this->priority,
-            'status' => (string) $this->status,
+            'priority' => $this->priority instanceof \BackedEnum ? $this->priority->value : (string) $this->priority,
+            'status' => $this->status instanceof \BackedEnum ? $this->status->value : (string) $this->status,
             'reporter' => $this->whenLoaded('reporter', function () {
                 return [
                     'id' => $this->reporter?->id,

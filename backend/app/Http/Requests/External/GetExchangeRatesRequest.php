@@ -14,8 +14,8 @@ class GetExchangeRatesRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'base' => ['sometimes', 'string', 'size:3'],
-            'symbols' => ['sometimes', 'string'], // comma-separated list, validated lightly
+            'base' => ['sometimes', 'string', 'size:3', 'alpha'],
+            'symbols' => ['sometimes', 'string', 'regex:/^([A-Z]{3})(,[A-Z]{3})*$/i'] // comma-separated 3-letter codes
         ];
     }
 }

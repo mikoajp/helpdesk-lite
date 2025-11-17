@@ -57,7 +57,8 @@ class TicketController extends Controller
 
         $this->authorize('view', $ticket);
 
-        return new TicketResource($ticket->loadMissing(['reporter.role', 'assignee.role', 'statusChanges.user']));
+        $resource = new TicketResource($ticket->loadMissing(['reporter.role', 'assignee.role', 'statusChanges.user']));
+        return response()->json($resource->resolve());
     }
 
     public function store(StoreTicketRequest $request)
@@ -78,9 +79,8 @@ class TicketController extends Controller
 
         $ticket->load(['reporter.role', 'assignee.role']);
 
-        return (new TicketResource($ticket->loadMissing(['reporter.role', 'assignee.role'])))
-            ->response()
-            ->setStatusCode(201);
+        $resource = new TicketResource($ticket->loadMissing(['reporter.role', 'assignee.role']));
+        return response()->json($resource->resolve(), 201);
     }
 
     public function update(UpdateTicketRequest $request, int $id)
@@ -94,7 +94,8 @@ class TicketController extends Controller
         $ticket->update($validated);
         $ticket->load(['reporter.role', 'assignee.role']);
 
-        return new TicketResource($ticket->loadMissing(['reporter.role', 'assignee.role']));
+        $resource = new TicketResource($ticket->loadMissing(['reporter.role', 'assignee.role']));
+        return response()->json($resource->resolve());
     }
 
     public function destroy(int $id)
@@ -125,6 +126,6 @@ class TicketController extends Controller
         $this->authorize('view', $ticket);
 
         $suggestion = $this->triageService->suggestTriage($ticket);
-        return response()->json($suggestion->toArray());
+        return response()->json($suggestion);
     }
 }

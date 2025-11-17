@@ -2,7 +2,7 @@
 
 namespace App\DTOs;
 
-readonly class TriageSuggestion
+readonly class TriageSuggestion implements \ArrayAccess, \JsonSerializable
 {
     public function __construct(
         public int $ticketId,
@@ -30,4 +30,14 @@ readonly class TriageSuggestion
             'fallback_reason' => $this->fallbackReason,
         ];
     }
+
+    // ArrayAccess implementation (read-only)
+    public function offsetExists($offset): bool { return array_key_exists($offset, $this->toArray()); }
+    public function offsetGet($offset): mixed { return $this->toArray()[$offset] ?? null; }
+    public function offsetSet($offset, $value): void { throw new \LogicException('TriageSuggestion is read-only'); }
+    public function offsetUnset($offset): void { throw new \LogicException('TriageSuggestion is read-only'); }
+
+    // JsonSerializable
+    public function jsonSerialize(): mixed { return $this->toArray(); }
 }
+

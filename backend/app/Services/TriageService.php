@@ -18,7 +18,7 @@ class TriageService implements TriageServiceInterface
      * @param Ticket $ticket
      * @return TriageSuggestion
      */
-    public function suggestTriage(Ticket $ticket): TriageSuggestion
+    public function suggestTriage(Ticket $ticket): array
     {
         // Check if LLM integration is enabled
         $useLLM = config('services.llm.enabled', false);
@@ -36,7 +36,7 @@ class TriageService implements TriageServiceInterface
      * @param Ticket $ticket
      * @return TriageSuggestion
      */
-    private function suggestWithRules(Ticket $ticket): TriageSuggestion
+    private function suggestWithRules(Ticket $ticket): array
     {
         $suggestedPriority = $this->determinePriority($ticket);
         $suggestedStatus = $this->determineStatus($ticket);
@@ -50,14 +50,14 @@ class TriageService implements TriageServiceInterface
             'confidence' => $confidence,
         ]);
 
-        return new TriageSuggestion(
+        return (new TriageSuggestion(
             ticketId: $ticket->id,
             suggestedPriority: $suggestedPriority,
             suggestedStatus: $suggestedStatus,
             summary: $summary,
             confidence: $confidence,
             method: 'rules',
-        );
+        ))->toArray();
     }
 
     /**
@@ -66,7 +66,7 @@ class TriageService implements TriageServiceInterface
      * @param Ticket $ticket
      * @return TriageSuggestion
      */
-    private function suggestWithLLM(Ticket $ticket): TriageSuggestion
+    private function suggestWithLLM(Ticket $ticket): array
     {
         // This is a mock LLM response
         // In production, this would call an actual LLM API (OpenAI, Claude, etc.)
@@ -84,7 +84,7 @@ class TriageService implements TriageServiceInterface
                 'suggested_status' => $analysis->suggestedStatus,
             ]);
 
-            return $analysis;
+            return $analysis->toArray();
 
         } catch (\Exception $e) {
             throw new \App\Exceptions\TriageFailedException('LLM service unavailable', [
@@ -211,12 +211,15 @@ class TriageService implements TriageServiceInterface
     {
         $reasons = [];
 
-        if ($priority !== $ticket->priority) {
-            $reasons[] = "Priority changed from {$ticket->priority} to {$priority}";
+        $currentPriority = $ticket->priority instanceof \BackedEnum ? $ticket->priority->value : (string) $ticket->priority;
+        $currentStatus = $ticket->status instanceof \BackedEnum ? $ticket->status->value : (string) $ticket->status;
+
+        if ($priority !== $currentPriority) {
+            $reasons[] = "Priority changed from {$currentPriority} to {$priority}";
         }
 
-        if ($status !== $ticket->status) {
-            $reasons[] = "Status changed from {$ticket->status} to {$status}";
+        if ($status !== $currentStatus) {
+            $reasons[] = "Status changed from {$currentStatus} to {$status}";
         }
 
         if (empty($reasons)) {
@@ -238,11 +241,11 @@ class TriageService implements TriageServiceInterface
     {
         $changes = [];
         
-        if ($priority !== $ticket->priority) {
+        if ($priority !== $currentPriority) {
             $changes[] = "priority to {$priority}";
         }
         
-        if ($status !== $ticket->status) {
+        if ($status !== $currentStatus) {
             $changes[] = "status to {$status}";
         }
 

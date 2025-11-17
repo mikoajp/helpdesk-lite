@@ -7,5 +7,6 @@ use App\Models\Ticket;
 
 interface TriageServiceInterface
 {
-    public function suggestTriage(Ticket $ticket): TriageSuggestion;
+    /** @return array */
+    public function suggestTriage(Ticket $ticket): array;
 }

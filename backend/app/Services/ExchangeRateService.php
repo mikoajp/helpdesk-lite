@@ -6,7 +6,9 @@ use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 
-class ExchangeRateService
+use App\Contracts\ExchangeRateServiceInterface;
+
+class ExchangeRateService implements ExchangeRateServiceInterface
 {
     private const API_BASE_URL = 'https://api.exchangerate.host';
     private const CACHE_TTL = 300; // 5 minutes in seconds
@@ -151,14 +153,14 @@ class ExchangeRateService
             'symbols' => $symbols,
         ]);
 
-        throw new \App\Exceptions\ExchangeRateUnavailableException(
-            'Exchange rate API is currently unavailable and no cached data is available.',
-            [
-                'base' => $base,
-                'symbols' => $symbols,
+        return [
+            'success' => false,
+            'error' => [
+                'code' => 'api_unavailable',
+                'message' => 'Exchange rate API is currently unavailable and no cached data is available.',
                 'details' => $errorMessage,
-            ]
-        );
+            ],
+        ];
     }
 
     /**
