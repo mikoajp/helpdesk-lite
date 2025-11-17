@@ -30,7 +30,7 @@ const preview: Preview = {
     docs: {
       toc: true,
     },
-    layout: 'padded',
+
   },
   globalTypes: {
     theme: {
