@@ -260,10 +260,17 @@ export class TicketFormComponent implements OnInit {
 
   addTag(event: MatChipInputEvent): void {
     const input = (event.value || '').trim();
-    if (!input) { event.chipInput!.clear(); return; }
+    if (!input) { if (event.chipInput) event.chipInput.clear(); return; }
     const parts = input.split(',').map(p => p.trim()).filter(Boolean);
     this.tags.update(tags => Array.from(new Set([...tags, ...parts])));
-    event.chipInput!.clear();
+    if (event.chipInput) event.chipInput.clear();
+  }
+
+  addTagFromText(value: string): void {
+    const input = (value || '').trim();
+    if (!input) return;
+    const parts = input.split(',').map(p => p.trim()).filter(Boolean);
+    this.tags.update(tags => Array.from(new Set([...tags, ...parts])));
   }
 
   removeTag(tag: string): void {
