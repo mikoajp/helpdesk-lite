@@ -232,9 +232,10 @@ Konwencje repo
 - Wsparcie light/dark mode
 - Introduction i DesignTokens dokumentacja
 
-### 🔄 Faza 7: Integracje front-back
-- TODO: End-to-end testy podstawowych ścieżek
-- TODO: Finalne połączenie wszystkich funkcjonalności
+### ✅ Faza 7: Integracje front-back
+- Podpięte: Tickets API (filtrowanie: status/priority/tag/assignee), triage-suggest, external-data
+- Front: akcept/reject triage, formularz z assignee_id, lista z filtrami
+- Uwaga: E2E testy pokryją w Fazie 8
 
 ### 🔄 Faza 8: Testy + Docker Compose + finalizacja
 - TODO: Kompletny zestaw testów
