@@ -8,6 +8,8 @@ use App\Http\Requests\Ticket\StoreTicketRequest;
 use App\Http\Requests\Ticket\UpdateTicketRequest;
 use App\Http\Resources\TicketResource;
 use App\Http\Resources\TicketStatusChangeResource;
+use App\DTOs\TicketFilter;
+use App\Contracts\TicketStatusChangeRepositoryInterface;
 use App\Contracts\TicketRepositoryInterface;
 use App\Models\Ticket;
 use App\Contracts\TriageServiceInterface;
@@ -18,23 +20,30 @@ class TicketController extends Controller
 {
     private TriageServiceInterface $triageService;
     private TicketRepositoryInterface $tickets;
+    private TicketStatusChangeRepositoryInterface $statusChanges;
 
-    public function __construct(TriageServiceInterface $triageService, TicketRepositoryInterface $tickets)
-    {
+    public function __construct(
+        TriageServiceInterface $triageService,
+        TicketRepositoryInterface $tickets,
+        TicketStatusChangeRepositoryInterface $statusChanges
+    ) {
         $this->triageService = $triageService;
         $this->tickets = $tickets;
+        $this->statusChanges = $statusChanges;
     }
     public function index(Request $request)
     {
         $user = Auth::user();
 
-        $tickets = $this->tickets->listForUser($user, [
-            'status' => $request->query('status'),
-            'priority' => $request->query('priority'),
-            'assignee_id' => $request->query('assignee_id'),
-            'tag' => $request->query('tag'),
-            'limit' => 50,
-        ]);
+        $filters = new TicketFilter(
+            status: $request->query('status'),
+            priority: $request->query('priority'),
+            assigneeId: $request->query('assignee_id') ? (int) $request->query('assignee_id') : null,
+            tag: $request->query('tag'),
+            limit: 50,
+        );
+
+        $tickets = $this->tickets->listForUser($user, $filters);
 
         return TicketResource::collection($tickets)
             ->additional(['count' => $tickets->count()]);
@@ -101,13 +110,10 @@ class TicketController extends Controller
 
     public function statusChanges(int $id)
     {
-        $ticket = Ticket::query()
-            ->with(['statusChanges.user'])
-            ->findOrFail($id);
-
+        $ticket = Ticket::findOrFail($id);
         $this->authorize('view', $ticket);
-
-        return TicketStatusChangeResource::collection($ticket->statusChanges->load('user'));
+        $changes = $this->statusChanges->listForTicket($ticket);
+        return TicketStatusChangeResource::collection($changes);
     }
 
     public function triageSuggest(int $id)
