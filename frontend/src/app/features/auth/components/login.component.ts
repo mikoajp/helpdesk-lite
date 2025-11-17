@@ -68,9 +68,9 @@ import { AuthService } from '../../../core/services/auth.service';
 
           <div class="demo-credentials">
             <h4>Demo Credentials:</h4>
-            <p><strong>Admin:</strong> admin&#64;example.com / password</p>
-            <p><strong>Agent:</strong> agent&#64;example.com / password</p>
-            <p><strong>Reporter:</strong> reporter&#64;example.com / password</p>
+            <p><strong>Admin:</strong> admin&#64;helpdesk.com / password</p>
+            <p><strong>Agent:</strong> agent&#64;helpdesk.com / password</p>
+            <p><strong>Reporter:</strong> reporter&#64;helpdesk.com / password</p>
           </div>
         </mat-card-content>
       </mat-card>
