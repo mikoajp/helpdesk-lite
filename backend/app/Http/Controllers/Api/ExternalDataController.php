@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Services\ExchangeRateService;
+use App\Http\Requests\External\GetExchangeRatesRequest;
 use Illuminate\Http\Request;
 
 class ExternalDataController extends Controller
@@ -21,15 +22,12 @@ class ExternalDataController extends Controller
      * @param Request $request
      * @return \Illuminate\Http\JsonResponse
      */
-    public function getExchangeRates(Request $request)
+    public function getExchangeRates(GetExchangeRatesRequest $request)
     {
-        $validated = $request->validate([
-            'base' => 'nullable|string|size:3|alpha',
-            'symbols' => 'nullable|string',
-        ]);
+        $validated = $request->validated();
 
-        $base = $validated['base'] ?? 'USD';
-        $symbolsString = $validated['symbols'] ?? 'EUR,PLN';
+        $base = $validated['base'] ?? config('exchange.default_base', 'USD');
+        $symbolsString = $validated['symbols'] ?? config('exchange.default_symbols', 'EUR,PLN');
         
         // Parse symbols from comma-separated string
         $symbols = array_map('trim', explode(',', $symbolsString));

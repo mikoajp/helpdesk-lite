@@ -7,6 +7,7 @@ use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\ValidationException;
+use App\Http\Resources\UserResource;
 
 class AuthController extends Controller
 {
@@ -33,12 +34,7 @@ class AuthController extends Controller
 
         return response()->json([
             'token' => $token,
-            'user' => [
-                'id' => $user->id,
-                'name' => $user->name,
-                'email' => $user->email,
-                'role' => $user->role->name,
-            ],
+            'user' => new UserResource($user),
         ]);
     }
 
@@ -54,11 +50,6 @@ class AuthController extends Controller
         $user = $request->user();
         $user->load('role');
 
-        return response()->json([
-            'id' => $user->id,
-            'name' => $user->name,
-            'email' => $user->email,
-            'role' => $user->role->name,
-        ]);
+        return new UserResource($user);
     }
 }
