@@ -70,3 +70,8 @@ body {
   position: absolute;
   inset: 0;
 }
+
+/* Remove all Material icons globally */
+.mat-icon { display: none !important; }
+/* Hide icon-only buttons */
+.mat-mdc-icon-button { display: none !important; }
