@@ -98,9 +98,9 @@ export class TicketsService {
     this.loading.set(true);
     this.error.set(null);
 
-    return this.http.get<{ data: Ticket }>(`${this.API_URL}/tickets/${id}`)
+    return this.http.get<any>(`${this.API_URL}/tickets/${id}`)
       .pipe(
-        map((resp) => resp.data),
+        map((resp) => (resp?.data ?? resp) as Ticket),
         tap({
           next: (ticket) => {
             this.currentTicket.set(ticket);
