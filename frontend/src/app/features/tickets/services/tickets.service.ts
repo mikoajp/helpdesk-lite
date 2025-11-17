@@ -75,7 +75,7 @@ export class TicketsService {
     if (filters) {
       if (filters.status) params = params.set('status', filters.status);
       if (filters.priority) params = params.set('priority', filters.priority);
-      if (filters.assignee) params = params.set('assignee', filters.assignee.toString());
+      if (filters.assignee) params = params.set('assignee_id', filters.assignee.toString());
       if (filters.tag) params = params.set('tag', filters.tag);
     }
 
@@ -98,10 +98,11 @@ export class TicketsService {
     this.loading.set(true);
     this.error.set(null);
 
-    return this.http.get<Ticket>(`${this.API_URL}/tickets/${id}`)
+    return this.http.get<any>(`${this.API_URL}/tickets/${id}`)
       .pipe(
         tap({
-          next: (ticket) => {
+          next: (resp) => {
+            const ticket: Ticket = resp?.data ?? resp;
             this.currentTicket.set(ticket);
             this.loading.set(false);
           },
