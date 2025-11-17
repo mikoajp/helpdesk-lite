@@ -118,7 +118,9 @@ import { AuthService } from '../../../core/services/auth.service';
                   placeholder="Add tag..."
                   [matChipInputFor]="chipGrid"
                   [matChipInputSeparatorKeyCodes]="separatorKeysCodes"
+                  [matChipInputAddOnBlur]="true"
                   (matChipInputTokenEnd)="addTag($event)"
+                  (blur)="addTagFromText($any($event.target).value); $any($event.target).value=''"
                 />
               </mat-form-field>
 
