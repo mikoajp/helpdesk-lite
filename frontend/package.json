@@ -39,6 +39,7 @@
     "@storybook/manager-api": "^7.6.20",
     "@storybook/theming": "^7.6.20",
     "@types/jasmine": "~5.1.0",
+    "html-webpack-plugin": "^5.6.0",
     "jasmine-core": "~5.1.0",
     "karma": "~6.4.0",
     "karma-chrome-launcher": "~3.2.0",
@@ -47,7 +48,11 @@
     "karma-jasmine-html-reporter": "~2.1.0",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
+    "resolve-url-loader": "^5.0.0",
     "storybook": "^7.6.20",
-    "typescript": "~5.4.2"
+    "typescript": "~5.4.2",
+    "webpack": "^5.92.0",
+    "webpack-dev-middleware": "^5.3.4",
+    "webpack-hot-middleware": "^2.26.1"
   }
 }
