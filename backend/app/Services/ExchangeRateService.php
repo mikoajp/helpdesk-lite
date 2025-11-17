@@ -153,6 +153,22 @@ class ExchangeRateService implements ExchangeRateServiceInterface
             'symbols' => $symbols,
         ]);
 
+        // Static fallback in local/dev or when enabled via config
+        if (config('exchange.use_static_fallback')) {
+            $static = config('exchange.static_fallback');
+            if (is_array($static) && !empty($static['rates'] ?? [])) {
+                return [
+                    'success' => true,
+                    'base' => $static['base'] ?? $base,
+                    'date' => now()->toDateString(),
+                    'rates' => $static['rates'],
+                    'cached' => true,
+                    'fallback' => true,
+                    'warning' => 'Using static fallback due to API failure: ' . $errorMessage,
+                ];
+            }
+        }
+
         return [
             'success' => false,
             'error' => [
