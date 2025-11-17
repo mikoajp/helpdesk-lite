@@ -240,6 +240,8 @@ class TriageService implements TriageServiceInterface
     private function generateLLMSummary(Ticket $ticket, string $priority, string $status): string
     {
         $changes = [];
+        $currentPriority = $ticket->priority instanceof \BackedEnum ? $ticket->priority->value : (string) $ticket->priority;
+        $currentStatus = $ticket->status instanceof \BackedEnum ? $ticket->status->value : (string) $ticket->status;
         
         if ($priority !== $currentPriority) {
             $changes[] = "priority to {$priority}";
