@@ -8,6 +8,7 @@ import { MatChipsModule } from '@angular/material/chips';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatSelectModule } from '@angular/material/select';
 import { MatFormFieldModule } from '@angular/material/form-field';
+import { MatInputModule } from '@angular/material/input';
 import { FormsModule } from '@angular/forms';
 import { TicketsService, Ticket, TicketFilters } from '../services/tickets.service';
 import { AuthService } from '../../../core/services/auth.service';
@@ -24,7 +25,8 @@ import { AuthService } from '../../../core/services/auth.service';
     MatChipsModule,
     MatProgressSpinnerModule,
     MatSelectModule,
-    MatFormFieldModule
+    MatFormFieldModule,
+    MatInputModule
   ],
   template: `
     <div class="ticket-list-container">
@@ -56,6 +58,16 @@ import { AuthService } from '../../../core/services/auth.service';
             <mat-option value="medium">Medium</mat-option>
             <mat-option value="high">High</mat-option>
           </mat-select>
+        </mat-form-field>
+
+        <mat-form-field appearance="outline">
+          <mat-label>Tag</mat-label>
+          <input matInput [(ngModel)]="filters.tag" (ngModelChange)="applyFilters()" placeholder="e.g. urgent" />
+        </mat-form-field>
+
+        <mat-form-field appearance="outline">
+          <mat-label>Assignee ID</mat-label>
+          <input matInput type="number" [(ngModel)]="filters.assignee" (ngModelChange)="applyFilters()" />
         </mat-form-field>
       </div>
 

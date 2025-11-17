@@ -98,6 +98,11 @@ import { AuthService } from '../../../core/services/auth.service';
               </div>
 
               <mat-form-field appearance="outline" class="full-width">
+                <mat-label>Assignee ID (optional)</mat-label>
+                <input matInput type="number" formControlName="assignee_id">
+              </mat-form-field>
+
+              <mat-form-field appearance="outline" class="full-width">
                 <mat-label>Tags</mat-label>
                 <mat-chip-grid #chipGrid>
                   @for (tag of tags(); track tag) {
@@ -214,7 +219,8 @@ export class TicketFormComponent implements OnInit {
       title: ['', Validators.required],
       description: ['', Validators.required],
       priority: ['medium', Validators.required],
-      status: ['open', Validators.required]
+      status: ['open', Validators.required],
+      assignee_id: [null]
     });
   }
 
@@ -235,7 +241,8 @@ export class TicketFormComponent implements OnInit {
           title: ticket.title,
           description: ticket.description,
           priority: ticket.priority,
-          status: ticket.status
+          status: ticket.status,
+          assignee_id: (ticket as any).assignee_id ?? null
         });
         this.tags.set(ticket.tags || []);
         this.loading.set(false);
