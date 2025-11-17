@@ -245,7 +245,9 @@ export class TicketFormComponent implements OnInit {
           status: ticket.status,
           assignee_id: ticket.assignee_id ?? null
         });
-        this.tags.set(ticket.tags || []);
+        const raw = Array.isArray(ticket.tags) ? ticket.tags : (typeof ticket.tags === 'string' ? ticket.tags.split(',') : []);
+        const norm = Array.from(new Set((raw || []).map((x: any) => typeof x === 'string' ? x.trim() : (x?.name ?? String(x))).filter(Boolean)));
+        this.tags.set(norm);
         this.loading.set(false);
       },
       error: (err) => {
@@ -257,10 +259,10 @@ export class TicketFormComponent implements OnInit {
   }
 
   addTag(event: MatChipInputEvent): void {
-    const value = (event.value || '').trim();
-    if (value) {
-      this.tags.update(tags => [...tags, value]);
-    }
+    const input = (event.value || '').trim();
+    if (!input) { event.chipInput!.clear(); return; }
+    const parts = input.split(',').map(p => p.trim()).filter(Boolean);
+    this.tags.update(tags => Array.from(new Set([...tags, ...parts])));
     event.chipInput!.clear();
   }
 

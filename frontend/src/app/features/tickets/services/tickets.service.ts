@@ -81,6 +81,14 @@ export class TicketsService {
 
     return this.http.get<{ data: Ticket[] }>(`${this.API_URL}/tickets`, { params })
       .pipe(
+        map((response) => {
+          const mapped = (response.data || []).map((t: any) => {
+            const raw = Array.isArray(t?.tags) ? t.tags : (typeof t?.tags === 'string' ? t.tags.split(',') : []);
+            const norm = Array.from(new Set((raw || []).map((x: any) => typeof x === 'string' ? x.trim() : (x?.name ?? String(x))).filter(Boolean)));
+            return { ...t, tags: norm } as Ticket;
+          });
+          return { data: mapped } as { data: Ticket[] };
+        }),
         tap({
           next: (response) => {
             this.tickets.set(response.data);
@@ -100,7 +108,12 @@ export class TicketsService {
 
     return this.http.get<any>(`${this.API_URL}/tickets/${id}`)
       .pipe(
-        map((resp) => (resp?.data ?? resp) as Ticket),
+        map((resp) => {
+          const t = (resp?.data ?? resp) as any;
+          const raw = Array.isArray(t?.tags) ? t.tags : (typeof t?.tags === 'string' ? t.tags.split(',') : []);
+          const norm = Array.from(new Set((raw || []).map((x: any) => typeof x === 'string' ? x.trim() : (x?.name ?? String(x))).filter(Boolean)));
+          return { ...t, tags: norm } as Ticket;
+        }),
         tap({
           next: (ticket) => {
             this.currentTicket.set(ticket);
