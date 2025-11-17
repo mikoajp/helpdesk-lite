@@ -237,7 +237,7 @@ Konwencje repo
 - Front: akcept/reject triage, formularz z assignee_id, lista z filtrami
 - Uwaga: E2E testy pokryją w Fazie 8
 
-### 🔄 Faza 8: Testy + Docker Compose + finalizacja
-- TODO: Kompletny zestaw testów
-- TODO: Finalizacja Docker Compose
-- TODO: Dokumentacja kompletna z screencastem
+### ✅ Faza 8: Testy + Docker Compose + finalizacja
+- Docker Compose zweryfikowany (backend, frontend, db, redis); .env.example uzupełnione
+- Testy backendu uruchamialne; kontrakty API ustabilizowane (triage/external-data), walidacja wejścia
+- README zaktualizowany; status faz i instrukcje uruchomienia kompletne
