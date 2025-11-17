@@ -30,15 +30,6 @@ class Handler extends ExceptionHandler
             ], 503);
         });
 
-        $this->renderable(function (ExchangeRateUnavailableException $e, $request) {
-            \Log::error('Exchange rates unavailable', $e->context);
-            return response()->json([
-                'error' => [
-                    'code' => 'exchange_rate_unavailable',
-                    'message' => $e->getMessage(),
-                    'details' => $e->getPrevious()?->getMessage(),
-                ],
-            ], 503);
-        });
+
     }
 }

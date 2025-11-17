@@ -1,7 +1,7 @@
 <?php
 
 use App\Http\Controllers\Api\AuthController;
-use App\Http\Controllers\Api\ExternalDataController;
+use App\Http\Controllers\Api\ExternalUserController;
 use App\Http\Controllers\Api\HealthController;
 use App\Http\Controllers\Api\TicketController;
 use Illuminate\Support\Facades\Route;
@@ -30,5 +30,5 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/tickets/{id}/triage-suggest', [TicketController::class, 'triageSuggest']);
     
     // External data integration
-    Route::get('/external-data', [ExternalDataController::class, 'getExchangeRates']);
+    Route::get('/tickets/{id}/external-user', [ExternalUserController::class, 'show']);
 });
