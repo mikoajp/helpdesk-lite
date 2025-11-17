@@ -94,16 +94,15 @@ export class TicketsService {
       );
   }
 
-  getTicket(id: number): Observable<Ticket> {
+  getTicket(id: number): Observable<{ data: Ticket }> {
     this.loading.set(true);
     this.error.set(null);
 
-    return this.http.get<any>(`${this.API_URL}/tickets/${id}`)
+    return this.http.get<{ data: Ticket }>(`${this.API_URL}/tickets/${id}`)
       .pipe(
         tap({
           next: (resp) => {
-            const ticket: Ticket = resp?.data ?? resp;
-            this.currentTicket.set(ticket);
+            this.currentTicket.set(resp.data);
             this.loading.set(false);
           },
           error: (err) => {
