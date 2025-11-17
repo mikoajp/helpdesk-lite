@@ -162,7 +162,7 @@ class TriageService implements TriageServiceInterface
         }
 
         // Default to medium if current priority is not set
-        return $ticket->priority?->value ?? TicketPriority::MEDIUM->value;
+        return ($ticket->priority instanceof \\BackedEnum ? $ticket->priority->value : (string) $ticket->priority) ?: TicketPriority::MEDIUM->value;
     }
 
     /**
@@ -174,14 +174,14 @@ class TriageService implements TriageServiceInterface
     private function determineStatus(Ticket $ticket): string
     {
         // If ticket has assignee and is open, suggest in_progress
-        if ($ticket->assignee_id && $ticket->status === TicketStatus::OPEN) {
+        if ($ticket->assignee_id && (($ticket->status instanceof \\BackedEnum ? $ticket->status->value : (string) $ticket->status) === TicketStatus::OPEN->value)) {
             return TicketStatus::IN_PROGRESS->value;
         }
 
         // If ticket is old and in_progress, suggest resolved
         $daysOld = $ticket->created_at?->diffInDays(now()) ?? 0;
         $threshold = (int) config('triage.rules.resolved_after_days', 7);
-        if ($daysOld > $threshold && $ticket->status === TicketStatus::IN_PROGRESS) {
+        if ($daysOld > $threshold && (($ticket->status instanceof \\BackedEnum ? $ticket->status->value : (string) $ticket->status) === TicketStatus::IN_PROGRESS->value)) {
             return TicketStatus::RESOLVED->value;
         }
 
@@ -196,7 +196,7 @@ class TriageService implements TriageServiceInterface
         }
 
         // Keep current status if it makes sense
-        return $ticket->status->value;
+        return $ticket->status instanceof \\BackedEnum ? $ticket->status->value : (string) $ticket->status;
     }
 
     /**
@@ -325,3 +325,4 @@ class TriageService implements TriageServiceInterface
         return round(min($confidence, 0.95), 2);
     }
 }
+
