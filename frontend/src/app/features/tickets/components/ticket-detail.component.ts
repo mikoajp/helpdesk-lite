@@ -360,8 +360,9 @@ export class TicketDetailComponent implements OnInit {
 
   loadTicket(id: number): void {
     this.ticketsService.getTicket(id).subscribe({
-      error: (err) => {
+      error: () => {
         this.snackBar.open('Failed to load ticket', 'Close', { duration: 3000 });
+        this.goBack();
       }
     });
   }
