@@ -16,7 +16,7 @@ class TriageService implements TriageServiceInterface
      * (with optional LLM integration behind feature flag)
      *
      * @param Ticket $ticket
-     * @return array
+     * @return TriageSuggestion
      */
     public function suggestTriage(Ticket $ticket): TriageSuggestion
     {
@@ -34,7 +34,7 @@ class TriageService implements TriageServiceInterface
      * Deterministic rule-based triage suggestion
      *
      * @param Ticket $ticket
-     * @return array
+     * @return TriageSuggestion
      */
     private function suggestWithRules(Ticket $ticket): TriageSuggestion
     {
@@ -64,7 +64,7 @@ class TriageService implements TriageServiceInterface
      * LLM-based triage suggestion (mock/real behind feature flag)
      *
      * @param Ticket $ticket
-     * @return array
+     * @return TriageSuggestion
      */
     private function suggestWithLLM(Ticket $ticket): TriageSuggestion
     {
@@ -72,8 +72,6 @@ class TriageService implements TriageServiceInterface
         // In production, this would call an actual LLM API (OpenAI, Claude, etc.)
         
         try {
-            $timeout = config('services.llm.timeout', 5);
-            
             // Simulate LLM processing time
             usleep(100000); // 0.1 seconds
 
@@ -82,8 +80,8 @@ class TriageService implements TriageServiceInterface
 
             Log::info('Triage suggestion generated (LLM)', [
                 'ticket_id' => $ticket->id,
-                'suggested_priority' => $analysis['suggested_priority'],
-                'suggested_status' => $analysis['suggested_status'],
+                'suggested_priority' => $analysis->suggestedPriority,
+                'suggested_status' => $analysis->suggestedStatus,
             ]);
 
             return $analysis;
@@ -100,7 +98,7 @@ class TriageService implements TriageServiceInterface
      * Mock LLM analysis (simulates LLM response)
      *
      * @param Ticket $ticket
-     * @return array
+     * @return TriageSuggestion
      */
     private function mockLLMAnalysis(Ticket $ticket): TriageSuggestion
     {

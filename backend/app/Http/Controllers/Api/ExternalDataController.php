@@ -5,7 +5,6 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Contracts\ExchangeRateServiceInterface;
 use App\Http\Requests\External\GetExchangeRatesRequest;
-use Illuminate\Http\Request;
 
 class ExternalDataController extends Controller
 {
@@ -19,7 +18,7 @@ class ExternalDataController extends Controller
     /**
      * Get exchange rates from external API
      *
-     * @param Request $request
+     * @param GetExchangeRatesRequest $request
      * @return \Illuminate\Http\JsonResponse
      */
     public function getExchangeRates(GetExchangeRatesRequest $request)
