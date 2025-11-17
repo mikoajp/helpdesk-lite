@@ -1,6 +1,6 @@
 import { Injectable, signal } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
-import { Observable, tap } from 'rxjs';
+import { Observable, tap, map } from 'rxjs';
 import { environment } from '../../../../environments/environment';
 
 export interface Ticket {
@@ -94,15 +94,16 @@ export class TicketsService {
       );
   }
 
-  getTicket(id: number): Observable<{ data: Ticket }> {
+  getTicket(id: number): Observable<Ticket> {
     this.loading.set(true);
     this.error.set(null);
 
     return this.http.get<{ data: Ticket }>(`${this.API_URL}/tickets/${id}`)
       .pipe(
+        map((resp) => resp.data),
         tap({
-          next: (resp) => {
-            this.currentTicket.set(resp.data);
+          next: (ticket) => {
+            this.currentTicket.set(ticket);
             this.loading.set(false);
           },
           error: (err) => {
