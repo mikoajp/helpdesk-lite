@@ -33,11 +33,6 @@ class ExternalDataController extends Controller
         $symbols = array_filter($symbols); // Remove empty values
 
         $result = $this->exchangeRateService->getRates($base, $symbols);
-
-        if (!$result['success']) {
-            return response()->json($result, 503);
-        }
-
         return response()->json($result);
     }
 }

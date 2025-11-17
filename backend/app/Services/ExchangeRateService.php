@@ -151,14 +151,14 @@ class ExchangeRateService
             'symbols' => $symbols,
         ]);
 
-        return [
-            'success' => false,
-            'error' => [
-                'code' => 'api_unavailable',
-                'message' => 'Exchange rate API is currently unavailable and no cached data is available.',
+        throw new \App\Exceptions\ExchangeRateUnavailableException(
+            'Exchange rate API is currently unavailable and no cached data is available.',
+            [
+                'base' => $base,
+                'symbols' => $symbols,
                 'details' => $errorMessage,
-            ],
-        ];
+            ]
+        );
     }
 
     /**
