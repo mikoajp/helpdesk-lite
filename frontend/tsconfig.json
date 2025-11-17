@@ -28,5 +28,14 @@
     "strictInjectionParameters": true,
     "strictInputAccessModifiers": true,
     "strictTemplates": true
-  }
+  },
+  "include": [
+    "src/**/*.ts",
+    ".storybook/**/*.ts"
+  ],
+  "exclude": [
+    "src/test.ts",
+    "**/*.spec.ts",
+    "node_modules"
+  ]
 }
