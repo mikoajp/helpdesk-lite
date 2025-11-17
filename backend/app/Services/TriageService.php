@@ -88,17 +88,10 @@ class TriageService implements TriageServiceInterface
             return $analysis;
 
         } catch (\Exception $e) {
-            Log::error('LLM triage failed, falling back to rules', [
+            throw new \App\Exceptions\TriageFailedException('LLM service unavailable', [
                 'ticket_id' => $ticket->id,
                 'error' => $e->getMessage(),
-            ]);
-
-            // Fallback to rule-based approach
-            $result = $this->suggestWithRules($ticket);
-            $result['fallback'] = true;
-            $result['fallback_reason'] = 'LLM service unavailable';
-            
-            return $result;
+            ], 0, $e);
         }
     }
 

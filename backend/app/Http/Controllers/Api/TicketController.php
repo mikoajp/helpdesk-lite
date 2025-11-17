@@ -118,18 +118,7 @@ class TicketController extends Controller
 
         $this->authorize('view', $ticket);
 
-        try {
-            $suggestion = $this->triageService->suggestTriage($ticket);
-            
-            return response()->json($suggestion);
-        } catch (\Exception $e) {
-            return response()->json([
-                'error' => [
-                    'code' => 'triage_failed',
-                    'message' => 'Failed to generate triage suggestion',
-                    'details' => $e->getMessage(),
-                ],
-            ], 500);
-        }
+        $suggestion = $this->triageService->suggestTriage($ticket);
+        return response()->json($suggestion);
     }
 }
