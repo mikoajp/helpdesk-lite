@@ -1,0 +1,421 @@
+import { Meta } from '@storybook/blocks';
+
+<Meta title="Examples/Usage in Application" />
+
+# Usage Examples in Application
+
+Learn how to integrate Design System components into your Angular application.
+
+## 🎯 Importing Components
+
+All components are **standalone** and can be imported directly:
+
+```typescript
+import { Component } from '@angular/core';
+import { PriorityBadgeComponent } from '@shared/components/priority-badge.component';
+import { TicketCardComponent } from '@shared/components/ticket-card.component';
+import { TriageSuggestionPanelComponent } from '@shared/components/triage-suggestion-panel.component';
+
+@Component({
+  selector: 'app-my-component',
+  standalone: true,
+  imports: [
+    PriorityBadgeComponent,
+    TicketCardComponent,
+    TriageSuggestionPanelComponent
+  ],
+  template: `
+    <!-- Your template here -->
+  `
+})
+export class MyComponent {}
+```
+
+## 🎨 Using Design Tokens
+
+### In TypeScript
+
+```typescript
+import { ColorTokens, SpacingTokens, TypographyTokens } from '@shared/design-tokens';
+
+export class MyComponent {
+  // Access token values
+  primaryColor = ColorTokens.primary.main;        // '#3f51b5'
+  mediumSpacing = SpacingTokens.md;               // '16px'
+  baseFontSize = TypographyTokens.fontSize.base;  // '16px'
+  
+  // Use in logic
+  getPriorityColor(priority: string): string {
+    switch(priority) {
+      case 'low': return ColorTokens.priority.low;
+      case 'medium': return ColorTokens.priority.medium;
+      case 'high': return ColorTokens.priority.high;
+      default: return ColorTokens.neutral.gray[500];
+    }
+  }
+}
+```
+
+### In SCSS/CSS
+
+```scss
+// Import theme if needed
+@import 'app/shared/styles/theme.scss';
+
+.my-component {
+  // Use CSS custom properties
+  color: var(--color-primary);
+  padding: var(--spacing-md);
+  font-size: var(--font-size-base);
+  border-radius: var(--radius-sm);
+  
+  // Responsive spacing
+  @media (min-width: 768px) {
+    padding: var(--spacing-lg);
+  }
+}
+
+.my-button {
+  background-color: var(--color-primary);
+  color: var(--color-primary-contrast);
+  padding: var(--spacing-sm) var(--spacing-md);
+  border-radius: var(--radius-md);
+  transition: var(--transition-base);
+  
+  &:hover {
+    background-color: var(--color-primary-dark);
+    box-shadow: var(--shadow-md);
+  }
+}
+```
+
+## 📦 Component Examples
+
+### 1. PriorityBadge in Ticket List
+
+```typescript
+@Component({
+  template: `
+    <div class="ticket-item">
+      <h3>{{ ticket.title }}</h3>
+      <app-priority-badge 
+        [priority]="ticket.priority">
+      </app-priority-badge>
+    </div>
+  `
+})
+export class TicketListItemComponent {
+  @Input() ticket!: Ticket;
+}
+```
+
+### 2. TicketCard in Grid
+
+```typescript
+@Component({
+  template: `
+    <div class="tickets-grid">
+      @for (ticket of tickets(); track ticket.id) {
+        <app-ticket-card
+          [ticket]="ticket"
+          [loading]="loading()"
+          [clickable]="true"
+          (cardClick)="onTicketClick($event)">
+        </app-ticket-card>
+      }
+    </div>
+  `,
+  styles: [`
+    .tickets-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+      gap: var(--spacing-md);
+    }
+  `]
+})
+export class TicketsGridComponent {
+  tickets = signal<Ticket[]>([]);
+  loading = signal(false);
+  
+  onTicketClick(ticketId: number): void {
+    this.router.navigate(['/tickets', ticketId]);
+  }
+}
+```
+
+### 3. TriageSuggestionPanel in Detail View
+
+```typescript
+@Component({
+  template: `
+    <app-triage-suggestion-panel
+      [suggestion]="triageSuggestion()"
+      [loading]="triageLoading()"
+      [error]="triageError()"
+      [errorMessage]="triageErrorMessage()"
+      (requestSuggestion)="onRequestTriage()"
+      (accept)="onAcceptTriage($event)"
+      (reject)="onRejectTriage()"
+      (retry)="onRequestTriage()">
+    </app-triage-suggestion-panel>
+  `
+})
+export class TicketDetailComponent {
+  triageSuggestion = signal<TriageSuggestion | null>(null);
+  triageLoading = signal(false);
+  triageError = signal(false);
+  triageErrorMessage = signal('');
+  
+  onRequestTriage(): void {
+    this.triageLoading.set(true);
+    this.triageError.set(false);
+    
+    this.triageService.getSuggestion(this.ticketId).subscribe({
+      next: (suggestion) => {
+        this.triageSuggestion.set(suggestion);
+        this.triageLoading.set(false);
+      },
+      error: (err) => {
+        this.triageError.set(true);
+        this.triageErrorMessage.set(err.message);
+        this.triageLoading.set(false);
+      }
+    });
+  }
+  
+  onAcceptTriage(suggestion: TriageSuggestion): void {
+    // Update ticket with suggestion
+    this.ticketService.update(this.ticketId, {
+      priority: suggestion.suggested_priority,
+      status: suggestion.suggested_status
+    }).subscribe();
+  }
+  
+  onRejectTriage(): void {
+    this.triageSuggestion.set(null);
+  }
+}
+```
+
+## 🎭 Loading States Pattern
+
+```typescript
+@Component({
+  template: `
+    <app-ticket-card
+      [ticket]="ticket"
+      [loading]="isLoading()"
+      [error]="hasError()"
+      [errorMessage]="errorMessage()">
+    </app-ticket-card>
+  `
+})
+export class TicketComponent implements OnInit {
+  isLoading = signal(false);
+  hasError = signal(false);
+  errorMessage = signal('');
+  ticket = signal<Ticket | null>(null);
+  
+  ngOnInit(): void {
+    this.loadTicket();
+  }
+  
+  loadTicket(): void {
+    this.isLoading.set(true);
+    this.hasError.set(false);
+    
+    this.ticketService.getTicket(this.ticketId).subscribe({
+      next: (ticket) => {
+        this.ticket.set(ticket);
+        this.isLoading.set(false);
+      },
+      error: (err) => {
+        this.hasError.set(true);
+        this.errorMessage.set(err.message || 'Failed to load ticket');
+        this.isLoading.set(false);
+      }
+    });
+  }
+}
+```
+
+## 🎨 Theming Example
+
+### Toggle Dark Mode
+
+```typescript
+@Component({
+  template: `
+    <button (click)="toggleTheme()">
+      {{ isDark ? 'Light' : 'Dark' }} Mode
+    </button>
+  `
+})
+export class ThemeToggleComponent {
+  isDark = false;
+  
+  toggleTheme(): void {
+    this.isDark = !this.isDark;
+    document.documentElement.setAttribute(
+      'data-theme',
+      this.isDark ? 'dark' : 'light'
+    );
+  }
+}
+```
+
+### Using Theme in Styles
+
+```scss
+.my-card {
+  background-color: var(--color-background-paper);
+  color: var(--color-text-primary);
+  border: 1px solid var(--color-gray-300);
+  
+  // Automatically adapts to dark theme
+  // No media queries needed!
+}
+```
+
+## 🔧 Customization
+
+### Custom Priority Colors
+
+```typescript
+// Override in your component
+@Component({
+  styles: [`
+    ::ng-deep app-priority-badge {
+      &.priority-low { background-color: #00bcd4; }
+      &.priority-medium { background-color: #ff5722; }
+      &.priority-high { background-color: #e91e63; }
+    }
+  `]
+})
+```
+
+### Custom Spacing
+
+```scss
+// Create custom spacing utility
+.custom-spacing {
+  padding: calc(var(--spacing-md) * 1.5); // 24px
+  margin-bottom: var(--spacing-xl); // 32px
+}
+```
+
+## 📱 Responsive Design
+
+```typescript
+@Component({
+  template: `
+    <div class="responsive-grid">
+      @for (ticket of tickets(); track ticket.id) {
+        <app-ticket-card [ticket]="ticket"></app-ticket-card>
+      }
+    </div>
+  `,
+  styles: [`
+    .responsive-grid {
+      display: grid;
+      gap: var(--spacing-md);
+      
+      // Mobile: 1 column
+      grid-template-columns: 1fr;
+      
+      // Tablet: 2 columns
+      @media (min-width: 768px) {
+        grid-template-columns: repeat(2, 1fr);
+      }
+      
+      // Desktop: 3 columns
+      @media (min-width: 1024px) {
+        grid-template-columns: repeat(3, 1fr);
+      }
+    }
+  `]
+})
+```
+
+## ✅ Best Practices
+
+### 1. Always Use Design Tokens
+❌ **Don't:**
+```scss
+.button {
+  color: #3f51b5;
+  padding: 16px;
+}
+```
+
+✅ **Do:**
+```scss
+.button {
+  color: var(--color-primary);
+  padding: var(--spacing-md);
+}
+```
+
+### 2. Use Signals for State
+❌ **Don't:**
+```typescript
+loading: boolean = false;
+```
+
+✅ **Do:**
+```typescript
+loading = signal(false);
+```
+
+### 3. Handle All States
+Always handle:
+- ✅ Default/success state
+- ⏳ Loading state
+- ❌ Error state
+- 🚫 Empty state (if applicable)
+
+### 4. Emit Events, Don't Mutate
+❌ **Don't:**
+```typescript
+// Mutating prop
+this.ticket.priority = 'high';
+```
+
+✅ **Do:**
+```typescript
+// Emit event
+this.priorityChange.emit('high');
+```
+
+## 🧪 Testing
+
+```typescript
+describe('TicketCardComponent', () => {
+  it('should display priority badge', () => {
+    const fixture = TestBed.createComponent(TicketCardComponent);
+    fixture.componentInstance.ticket = mockTicket;
+    fixture.detectChanges();
+    
+    const badge = fixture.nativeElement.querySelector('app-priority-badge');
+    expect(badge).toBeTruthy();
+  });
+  
+  it('should emit cardClick event', () => {
+    const fixture = TestBed.createComponent(TicketCardComponent);
+    const component = fixture.componentInstance;
+    spyOn(component.cardClick, 'emit');
+    
+    const card = fixture.nativeElement.querySelector('.ticket-card');
+    card.click();
+    
+    expect(component.cardClick.emit).toHaveBeenCalledWith(mockTicket.id);
+  });
+});
+```
+
+## 📚 Further Reading
+
+- [Angular Material Documentation](https://material.angular.io/)
+- [Design Tokens Specification](https://www.w3.org/community/design-tokens/)
+- [Atomic Design Methodology](https://bradfrost.com/blog/post/atomic-web-design/)
+- [Component-Driven Development](https://www.componentdriven.org/)

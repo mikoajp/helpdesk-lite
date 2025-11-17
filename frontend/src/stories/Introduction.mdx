@@ -1,0 +1,129 @@
+import { Meta } from '@storybook/blocks';
+
+<Meta title="Introduction" />
+
+# Helpdesk Lite Design System
+
+Welcome to the **Helpdesk Lite Design System** - a comprehensive component library built with Angular and Material Design.
+
+## 🎯 Purpose
+
+This design system provides:
+- **Consistent UI components** across the application
+- **Reusable building blocks** for tickets, priorities, and AI suggestions
+- **Design tokens** for colors, spacing, typography, and more
+- **Accessibility** and responsive design out of the box
+
+## 🎨 Design Tokens
+
+Our design system is built on a foundation of **design tokens** - reusable values that define the visual language:
+
+### Colors
+- **Primary**: #3f51b5 (Indigo)
+- **Status Colors**: Open (Blue), In Progress (Orange), Resolved (Green), Closed (Gray)
+- **Priority Colors**: Low (Green), Medium (Orange), High (Red)
+- **Semantic**: Success, Warning, Error, Info
+
+### Spacing
+- XS: 4px
+- SM: 8px
+- MD: 16px
+- LG: 24px
+- XL: 32px
+- XXL: 48px
+
+### Typography
+- Font Family: Roboto, Helvetica Neue, sans-serif
+- Font Sizes: 12px - 36px
+- Font Weights: 300 (Light), 400 (Normal), 500 (Medium), 700 (Bold)
+
+### Border Radius
+- SM: 4px
+- MD: 8px
+- LG: 16px
+- Full: 9999px (circles)
+
+## 🧩 Components
+
+### PriorityBadge
+Displays ticket priority with color coding:
+- Low (Green)
+- Medium (Orange)
+- High (Red)
+
+### TicketCard
+A card component for displaying ticket summaries with:
+- Title and description
+- Priority and status badges
+- Tags
+- Assignee information
+- Loading and error states
+
+### TriageSuggestionPanel
+AI-powered triage assistant panel featuring:
+- AI-generated suggestions
+- Confidence scoring
+- Accept/Reject actions
+- Loading and error states
+
+## 🌓 Theme Support
+
+Components support both light and dark themes using CSS custom properties.
+
+## 📱 Responsive Design
+
+All components are mobile-first and fully responsive:
+- Desktop: Full layout with all details
+- Tablet: Adapted grid layouts
+- Mobile: Stacked single-column layouts
+
+## ♿ Accessibility
+
+- ARIA labels and roles
+- Keyboard navigation support
+- Color contrast compliance (WCAG AA)
+- Screen reader friendly
+
+## 🚀 Getting Started
+
+Browse the components in the sidebar to see:
+- **Controls** - Interactive props playground
+- **Docs** - Component documentation
+- **Multiple states** - Default, loading, error, etc.
+
+## 📦 Usage
+
+Import components in your Angular application:
+
+\`\`\`typescript
+import { PriorityBadgeComponent } from '@shared/components/priority-badge.component';
+import { TicketCardComponent } from '@shared/components/ticket-card.component';
+import { TriageSuggestionPanelComponent } from '@shared/components/triage-suggestion-panel.component';
+
+@Component({
+  imports: [
+    PriorityBadgeComponent,
+    TicketCardComponent,
+    TriageSuggestionPanelComponent
+  ]
+})
+\`\`\`
+
+## 🎨 Design Tokens Usage
+
+Access design tokens in your styles:
+
+\`\`\`scss
+.my-component {
+  color: var(--color-primary);
+  padding: var(--spacing-md);
+  border-radius: var(--radius-sm);
+  font-family: var(--font-family-primary);
+}
+\`\`\`
+
+## 🔗 Related Links
+
+- [Angular Material](https://material.angular.io/)
+- [Storybook Documentation](https://storybook.js.org/)
+- [Design System Best Practices](https://www.designsystems.com/)

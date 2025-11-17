@@ -220,10 +220,17 @@ Konwencje repo
   - TicketFormComponent - formularz tworzenia/edycji ticketu
   - HeaderComponent - nawigacja z user menu
 
-### 🔄 Faza 6: Design System + Storybook
-- TODO: Konfiguracja Storybook
-- TODO: Komponenty PriorityBadge, TicketCard, TriageSuggestionPanel
-- TODO: Globalne tokeny (colors, spacing, radius, typography)
+### ✅ Faza 6: Design System + Storybook
+- Konfiguracja Storybook 7.6 dla Angular
+- Design Tokens (colors, spacing, radius, typography)
+- Komponenty:
+  - PriorityBadge - badge z kolorowaniem priorytetów (low/medium/high)
+  - TicketCard - karta ticketu z wszystkimi stanami (default/loading/error)
+  - TriageSuggestionPanel - panel sugestii AI z accept/reject
+- Stories dla wszystkich komponentów z Controls i Docs
+- Globalne theming z CSS custom properties
+- Wsparcie light/dark mode
+- Introduction i DesignTokens dokumentacja
 
 ### 🔄 Faza 7: Integracje front-back
 - TODO: End-to-end testy podstawowych ścieżek
