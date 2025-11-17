@@ -14,6 +14,7 @@ class AppServiceProvider extends ServiceProvider
     {
         $this->app->bind(\App\Contracts\TriageServiceInterface::class, \App\Services\TriageService::class);
         $this->app->bind(\App\Contracts\ExchangeRateServiceInterface::class, \App\Services\ExchangeRateService::class);
+        $this->app->bind(\App\Contracts\TicketRepositoryInterface::class, \App\Repositories\EloquentTicketRepository::class);
     }
 
     /**

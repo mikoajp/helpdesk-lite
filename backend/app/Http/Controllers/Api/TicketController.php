@@ -8,6 +8,7 @@ use App\Http\Requests\Ticket\StoreTicketRequest;
 use App\Http\Requests\Ticket\UpdateTicketRequest;
 use App\Http\Resources\TicketResource;
 use App\Http\Resources\TicketStatusChangeResource;
+use App\Contracts\TicketRepositoryInterface;
 use App\Models\Ticket;
 use App\Contracts\TriageServiceInterface;
 use Illuminate\Http\Request;
@@ -16,25 +17,24 @@ use Illuminate\Support\Facades\Auth;
 class TicketController extends Controller
 {
     private TriageServiceInterface $triageService;
+    private TicketRepositoryInterface $tickets;
 
-    public function __construct(TriageServiceInterface $triageService)
+    public function __construct(TriageServiceInterface $triageService, TicketRepositoryInterface $tickets)
     {
         $this->triageService = $triageService;
+        $this->tickets = $tickets;
     }
     public function index(Request $request)
     {
         $user = Auth::user();
 
-        $query = Ticket::query()
-            ->with(['reporter.role', 'assignee.role'])
-            ->forUser($user)
-            ->byStatus($request->query('status'))
-            ->byPriority($request->query('priority'))
-            ->byAssignee($request->query('assignee_id'))
-            ->byTag($request->query('tag'))
-            ->orderByDesc('created_at');
-
-        $tickets = $query->limit(50)->get();
+        $tickets = $this->tickets->listForUser($user, [
+            'status' => $request->query('status'),
+            'priority' => $request->query('priority'),
+            'assignee_id' => $request->query('assignee_id'),
+            'tag' => $request->query('tag'),
+            'limit' => 50,
+        ]);
 
         return TicketResource::collection($tickets)
             ->additional(['count' => $tickets->count()]);
