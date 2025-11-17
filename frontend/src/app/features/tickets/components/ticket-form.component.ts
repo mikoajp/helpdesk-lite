@@ -236,13 +236,14 @@ export class TicketFormComponent implements OnInit {
   loadTicket(id: number): void {
     this.loading.set(true);
     this.ticketsService.getTicket(id).subscribe({
-      next: (ticket) => {
+      next: (resp) => {
+        const ticket: any = (resp as any)?.data ?? resp;
         this.ticketForm.patchValue({
           title: ticket.title,
           description: ticket.description,
           priority: ticket.priority,
           status: ticket.status,
-          assignee_id: (ticket as any).assignee_id ?? null
+          assignee_id: ticket.assignee_id ?? null
         });
         this.tags.set(ticket.tags || []);
         this.loading.set(false);
