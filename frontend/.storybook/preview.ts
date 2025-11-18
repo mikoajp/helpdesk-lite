@@ -1,6 +1,5 @@
 import type { Preview } from '@storybook/angular';
 import { setCompodocJson } from '@storybook/addon-docs/angular';
-import '../src/styles.scss';
 
 const preview: Preview = {
   parameters: {
