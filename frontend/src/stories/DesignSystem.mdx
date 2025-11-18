@@ -1,0 +1,84 @@
+import { Meta } from '@storybook/blocks';
+
+<Meta title="Design System/Overview" />
+
+# Design System
+
+Welcome to the **Modern Ticket System Design System**. This design system provides a comprehensive set of design tokens, components, and guidelines to build consistent and beautiful user interfaces.
+
+## Philosophy
+
+Our design system is built on the following principles:
+
+- **Consistency**: Unified visual language across all components
+- **Accessibility**: WCAG 2.1 AA compliant with semantic HTML and ARIA labels
+- **Modern**: Clean, minimalist aesthetic with subtle animations
+- **Flexible**: Highly customizable with design tokens
+- **Performance**: Optimized for fast rendering and smooth interactions
+
+## Design Tokens
+
+Design tokens are the foundation of our design system. They define the visual primitives such as colors, spacing, typography, and more.
+
+### Key Token Categories
+
+1. **Colors** - Comprehensive color palette with semantic meaning
+2. **Typography** - Font families, sizes, weights, and line heights
+3. **Spacing** - Consistent spacing scale based on 4px units
+4. **Border Radius** - Rounded corners for modern aesthetics
+5. **Shadows** - Elevation system for depth and hierarchy
+6. **Animations** - Smooth transitions and timing functions
+
+## Components
+
+Our component library includes:
+
+- **Priority Badge** - Visual indicators for priority levels
+- **Ticket Card** - Card component for displaying ticket information
+- **Triage Suggestion Panel** - AI-powered ticket suggestions
+- **Header** - Application navigation header
+- And more...
+
+## Getting Started
+
+To use components from this design system:
+
+```typescript
+import { PriorityBadgeComponent } from '@shared/components';
+import { ColorTokens, SpacingTokens } from '@shared/design-tokens';
+```
+
+## Color System
+
+Our color system features:
+
+- **Primary Blue** - Modern, trustworthy brand color
+- **Semantic Colors** - Success (green), Warning (amber), Error (red), Info (blue)
+- **Priority Colors** - Visual hierarchy for ticket priorities
+- **Neutral Grays** - Refined grayscale for text and backgrounds
+
+## Typography
+
+We use **Inter** as our primary font family for its excellent readability and modern appearance.
+
+- **Sans-serif** - Inter (default)
+- **Monospace** - JetBrains Mono for code
+- **Display** - Inter for headings
+
+## Accessibility
+
+All components are designed with accessibility in mind:
+
+- Semantic HTML elements
+- ARIA labels and roles
+- Keyboard navigation support
+- Sufficient color contrast (WCAG AA)
+- Focus indicators
+
+## Best Practices
+
+1. Always use design tokens instead of hard-coded values
+2. Follow the spacing scale for consistent layouts
+3. Use semantic color names for better maintainability
+4. Test components in both light and dark contexts
+5. Ensure all interactive elements have focus states

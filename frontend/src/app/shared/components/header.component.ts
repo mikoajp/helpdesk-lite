@@ -7,6 +7,7 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatMenuModule } from '@angular/material/menu';
 import { MatDividerModule } from '@angular/material/divider';
 import { AuthService } from '../../core/services/auth.service';
+import { ColorTokens, SpacingTokens, ShadowTokens } from '../design-tokens';
 
 @Component({
   selector: 'app-header',
@@ -48,10 +49,19 @@ import { AuthService } from '../../core/services/auth.service';
     </mat-toolbar>
   `,
   styles: [`
+    :host ::ng-deep mat-toolbar {
+      background: ${ColorTokens.primary.main} !important;
+      color: white !important;
+      box-shadow: ${ShadowTokens.md};
+      padding: 0 ${SpacingTokens[6]};
+      height: 64px;
+    }
+    
     .app-name {
       font-size: 20px;
-      font-weight: 500;
-      margin-left: 8px;
+      font-weight: 600;
+      margin-left: ${SpacingTokens[3]};
+      letter-spacing: -0.025em;
     }
 
     .spacer {
@@ -59,22 +69,34 @@ import { AuthService } from '../../core/services/auth.service';
     }
 
     .user-info {
-      padding: 16px;
+      padding: ${SpacingTokens[4]};
+      min-width: 200px;
       
       p {
-        margin: 4px 0;
+        margin: ${SpacingTokens[1]} 0;
+      }
+      
+      strong {
+        color: ${ColorTokens.text.primary};
+        font-size: 14px;
       }
       
       .email {
         font-size: 12px;
-        color: #666;
+        color: ${ColorTokens.text.tertiary};
       }
       
       .role {
         font-size: 12px;
-        color: #666;
+        color: ${ColorTokens.text.secondary};
         text-transform: capitalize;
+        font-weight: 500;
       }
+    }
+    
+    :host ::ng-deep .mat-mdc-menu-panel {
+      border-radius: ${SpacingTokens[2]};
+      box-shadow: ${ShadowTokens.lg};
     }
   `]
 })

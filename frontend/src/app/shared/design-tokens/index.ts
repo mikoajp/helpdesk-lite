@@ -3,3 +3,5 @@ export * from './colors.tokens';
 export * from './spacing.tokens';
 export * from './radius.tokens';
 export * from './typography.tokens';
+export * from './shadows.tokens';
+export * from './animations.tokens';

@@ -1,29 +1,29 @@
 import { Component, OnInit, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute, Router } from '@angular/router';
-import { MatCardModule } from '@angular/material/card';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
-import { MatChipsModule } from '@angular/material/chips';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
-import { MatDividerModule } from '@angular/material/divider';
-import { TicketsService, Ticket, TicketStatusChange, TriageSuggestion } from '../services/tickets.service';
+import { TicketsService, Ticket, TicketStatusChange } from '../services/tickets.service';
+import { TriageSuggestion as ServiceTriageSuggestion } from '../services/tickets.service';
 import { ExternalDataService, ExternalUserResponse } from '../../../core/services/external-data.service';
 import { AuthService } from '../../../core/services/auth.service';
+import { PriorityBadgeComponent } from '../../../shared/components/priority-badge.component';
+import { TriageSuggestionPanelComponent, TriageSuggestion } from '../../../shared/components/triage-suggestion-panel.component';
+import { ColorTokens, SpacingTokens, RadiusTokens, ShadowTokens, TypographyTokens } from '../../../shared/design-tokens';
 
 @Component({
   selector: 'app-ticket-detail',
   standalone: true,
   imports: [
     CommonModule,
-    MatCardModule,
     MatButtonModule,
     MatIconModule,
-    MatChipsModule,
     MatProgressSpinnerModule,
     MatSnackBarModule,
-    MatDividerModule
+    PriorityBadgeComponent,
+    TriageSuggestionPanelComponent
   ],
   template: `
     <div class="ticket-detail-container">
@@ -46,106 +46,110 @@ import { AuthService } from '../../../core/services/auth.service';
         </div>
 
         <div class="content">
-          <mat-card class="main-card">
-            <mat-card-header>
-              <mat-card-title>{{ ticket()!.title }}</mat-card-title>
-              <mat-card-subtitle>
+          <div class="main-card">
+            <div class="card-header">
+              <h2>{{ ticket()!.title }}</h2>
+              <p class="meta">
                 Created {{ ticket()!.created_at | date:'medium' }} by {{ ticket()!.reporter?.name || 'Unknown' }}
-              </mat-card-subtitle>
-            </mat-card-header>
+              </p>
+            </div>
 
-            <mat-card-content>
+            <div class="card-content">
               <div class="badges">
-                <mat-chip [class]="'priority-' + ticket()!.priority">
-                  Priority: {{ ticket()!.priority }}
-                </mat-chip>
-                <mat-chip [class]="'status-' + ticket()!.status">
-                  Status: {{ ticket()!.status | titlecase }}
-                </mat-chip>
+                <app-priority-badge [priority]="ticket()!.priority"></app-priority-badge>
+                <span class="status-badge status-{{ ticket()!.status }}">
+                  {{ formatStatus(ticket()!.status) }}
+                </span>
               </div>
 
-              <mat-divider></mat-divider>
+              <div class="divider"></div>
 
-              <div class="description">
+              <div class="section">
                 <h3>Description</h3>
-                <p>{{ ticket()!.description }}</p>
+                <p class="description-text">{{ ticket()!.description }}</p>
               </div>
 
               @if (ticket()!.tags && ticket()!.tags.length > 0) {
-                <div class="tags-section">
+                <div class="section">
                   <h3>Tags</h3>
                   <div class="tags">
                     @for (tag of ticket()!.tags; track tag) {
-                      <mat-chip>{{ tag }}</mat-chip>
+                      <span class="tag">{{ tag }}</span>
                     }
                   </div>
                 </div>
               }
 
               @if (ticket()!.assignee) {
-                <div class="assignee-section">
+                <div class="section">
                   <h3>Assigned To</h3>
                   <div class="assignee">
-                    <mat-icon>person</mat-icon>
-                    <span>{{ ticket()!.assignee?.name }} ({{ ticket()!.assignee?.email }})</span>
+                    <div class="avatar-placeholder">
+                      {{ getAssigneeInitial() }}
+                    </div>
+                    <div class="assignee-info">
+                      <span class="name">{{ ticket()!.assignee?.name }}</span>
+                      <span class="email">{{ ticket()!.assignee?.email }}</span>
+                    </div>
                   </div>
                 </div>
               }
 
-              <mat-divider></mat-divider>
+              <div class="divider"></div>
 
-              <div class="triage-section">
-                <h3>AI Triage Assistant</h3>
+              <div class="section triage-section">
+                <h3>
+                  <mat-icon class="section-icon">psychology</mat-icon>
+                  AI Triage Assistant
+                </h3>
                 @if (triageLoading()) {
-                  <mat-spinner diameter="30"></mat-spinner>
-                } @else if (triageSuggestion()) {
-                  <div class="triage-suggestion">
-                    <p><strong>Summary:</strong> {{ triageSuggestion()!.summary }}</p>
-                    <p><strong>Suggested Priority:</strong> {{ triageSuggestion()!.suggested_priority }}</p>
-                    <p><strong>Suggested Status:</strong> {{ triageSuggestion()!.suggested_status }}</p>
-                    <p><strong>Confidence:</strong> {{ (triageSuggestion()!.confidence * 100).toFixed(0) }}%</p>
-                    <div class="triage-actions">
-                      <button mat-raised-button color="primary" (click)="acceptTriage()">
-                        <mat-icon>check</mat-icon>
-                        Accept
-                      </button>
-                      <button mat-button (click)="rejectTriage()">
-                        <mat-icon>close</mat-icon>
-                        Reject
-                      </button>
-                    </div>
+                  <div class="triage-loading">
+                    <mat-spinner diameter="30"></mat-spinner>
+                    <p>Analyzing ticket...</p>
                   </div>
+                } @else if (triageSuggestion()) {
+                  <app-triage-suggestion-panel
+                    [suggestion]="convertTriageSuggestion(triageSuggestion()!)"
+                    (accept)="acceptTriage()"
+                    (reject)="rejectTriage()">
+                  </app-triage-suggestion-panel>
                 } @else {
-                  <button mat-raised-button (click)="requestTriage()">
+                  <button class="triage-button" (click)="requestTriage()">
                     <mat-icon>psychology</mat-icon>
-                    Suggest Triage
+                    Get AI Suggestion
                   </button>
                 }
               </div>
-            </mat-card-content>
-          </mat-card>
+            </div>
+          </div>
 
           <div class="sidebar">
-            <mat-card class="status-history-card">
-              <mat-card-header>
-                <mat-card-title>Status History</mat-card-title>
-              </mat-card-header>
-              <mat-card-content>
+            <div class="sidebar-card">
+              <div class="card-header">
+                <h3>
+                  <mat-icon class="section-icon">history</mat-icon>
+                  Status History
+                </h3>
+              </div>
+              <div class="card-content">
                 @if (statusChangesLoading()) {
-                  <mat-spinner diameter="30"></mat-spinner>
+                  <div class="loading-state">
+                    <mat-spinner diameter="30"></mat-spinner>
+                  </div>
                 } @else if (statusChanges().length > 0) {
                   <div class="status-changes">
                     @for (change of statusChanges(); track change.id) {
                       <div class="status-change">
                         <div class="change-header">
-                          <mat-icon>update</mat-icon>
-                          <span>{{ change.created_at | date:'short' }}</span>
+                          <mat-icon class="change-icon">update</mat-icon>
+                          <span class="change-date">{{ change.created_at | date:'short' }}</span>
                         </div>
                         <div class="change-detail">
                           @if (change.old_status) {
-                            <span>{{ change.old_status }} → </span>
+                            <span class="old-status">{{ formatStatus(change.old_status) }}</span>
+                            <mat-icon class="arrow-icon">arrow_forward</mat-icon>
                           }
-                          <strong>{{ change.new_status }}</strong>
+                          <span class="new-status">{{ formatStatus(change.new_status) }}</span>
                         </div>
                         @if (change.user) {
                           <div class="change-user">by {{ change.user.name }}</div>
@@ -154,31 +158,36 @@ import { AuthService } from '../../../core/services/auth.service';
                     }
                   </div>
                 } @else {
-                  <p>No status changes yet</p>
+                  <p class="empty-state">No status changes yet</p>
                 }
-              </mat-card-content>
-            </mat-card>
+              </div>
+            </div>
 
-            <mat-card class="external-data-card">
-              <mat-card-header>
-                <mat-card-title>Reporter External Profile</mat-card-title>
-              </mat-card-header>
-              <mat-card-content>
+            <div class="sidebar-card">
+              <div class="card-header">
+                <h3>
+                  <mat-icon class="section-icon">public</mat-icon>
+                  External Profile
+                </h3>
+              </div>
+              <div class="card-content">
                 @if (externalUserLoading()) {
-                  <mat-spinner diameter="30"></mat-spinner>
+                  <div class="loading-state">
+                    <mat-spinner diameter="30"></mat-spinner>
+                  </div>
                 } @else if (externalUser() && externalUser()!.user) {
                   <div class="external-user">
-                    <p>{{ getExternalUserDisplay() }}</p>
-                    <small class="source">Source: JSONPlaceholder</small>
+                    <p class="user-name">{{ getExternalUserDisplay() }}</p>
+                    <span class="source-badge">JSONPlaceholder</span>
                   </div>
                 } @else {
-                  <button mat-button (click)="loadExternalUser(ticket()!.id)">
+                  <button class="load-button" (click)="loadExternalUser(ticket()!.id)">
                     <mat-icon>refresh</mat-icon>
-                    Load External User
+                    Load Profile
                   </button>
                 }
-              </mat-card-content>
-            </mat-card>
+              </div>
+            </div>
           </div>
         </div>
       }
@@ -186,70 +195,257 @@ import { AuthService } from '../../../core/services/auth.service';
   `,
   styles: [`
     .ticket-detail-container {
-      padding: 24px;
+      padding: ${SpacingTokens[8]};
       max-width: 1400px;
       margin: 0 auto;
+      background: ${ColorTokens.background.secondary};
+      min-height: 100vh;
+    }
+
+    .loading {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding: ${SpacingTokens[16]};
     }
 
     .header {
       display: flex;
       align-items: center;
-      gap: 16px;
-      margin-bottom: 24px;
+      gap: ${SpacingTokens[4]};
+      margin-bottom: ${SpacingTokens[6]};
+      background: ${ColorTokens.background.paper};
+      padding: ${SpacingTokens[4]} ${SpacingTokens[6]};
+      border-radius: ${RadiusTokens.lg};
+      box-shadow: ${ShadowTokens.sm};
 
       h1 {
         flex: 1;
         margin: 0;
+        font-size: 24px;
+        font-weight: 700;
+        color: ${ColorTokens.text.primary};
+        font-family: 'JetBrains Mono', monospace;
+      }
+      
+      button {
+        transition: all 200ms cubic-bezier(0.4, 0, 0.2, 1);
       }
     }
 
     .content {
       display: grid;
-      grid-template-columns: 1fr 350px;
-      gap: 24px;
+      grid-template-columns: 1fr 380px;
+      gap: ${SpacingTokens[6]};
     }
 
-    .main-card {
-      mat-card-header {
-        margin-bottom: 16px;
+    .main-card, .sidebar-card {
+      background: ${ColorTokens.background.paper};
+      border-radius: ${RadiusTokens.lg};
+      box-shadow: ${ShadowTokens.sm};
+      overflow: hidden;
+    }
+    
+    .card-header {
+      padding: ${SpacingTokens[6]};
+      border-bottom: 1px solid ${ColorTokens.border.default};
+      
+      h2 {
+        margin: 0 0 ${SpacingTokens[2]} 0;
+        font-size: 24px;
+        font-weight: 700;
+        color: ${ColorTokens.text.primary};
+        line-height: 1.3;
       }
+      
+      h3 {
+        margin: 0;
+        font-size: 16px;
+        font-weight: 600;
+        color: ${ColorTokens.text.primary};
+        display: flex;
+        align-items: center;
+        gap: ${SpacingTokens[2]};
+      }
+      
+      .meta {
+        margin: 0;
+        font-size: 13px;
+        color: ${ColorTokens.text.tertiary};
+      }
+    }
+    
+    .card-content {
+      padding: ${SpacingTokens[6]};
+    }
+    
+    .section-icon {
+      font-size: 20px;
+      width: 20px;
+      height: 20px;
+      color: ${ColorTokens.primary.main};
     }
 
     .badges {
       display: flex;
-      gap: 8px;
-      margin: 16px 0;
+      gap: ${SpacingTokens[3]};
+      margin-bottom: ${SpacingTokens[6]};
+      align-items: center;
+    }
+    
+    .status-badge {
+      padding: ${SpacingTokens[1.5]} ${SpacingTokens[3]};
+      border-radius: ${RadiusTokens.full};
+      font-size: 13px;
+      font-weight: 600;
+      text-transform: capitalize;
+      letter-spacing: 0.025em;
     }
 
-    .priority-low { background-color: #4caf50; color: white; }
-    .priority-medium { background-color: #ff9800; color: white; }
-    .priority-high { background-color: #f44336; color: white; }
-
-    .status-open { background-color: #2196f3; color: white; }
-    .status-in_progress { background-color: #ff9800; color: white; }
-    .status-resolved { background-color: #4caf50; color: white; }
-    .status-closed { background-color: #9e9e9e; color: white; }
-
-    .description, .tags-section, .assignee-section, .triage-section {
-      margin: 24px 0;
+    .status-open {
+      background-color: ${ColorTokens.status.open.bg};
+      color: ${ColorTokens.status.open.main};
+      border: 1px solid ${ColorTokens.status.open.border};
+    }
+    
+    .status-in_progress {
+      background-color: ${ColorTokens.status.inProgress.bg};
+      color: ${ColorTokens.status.inProgress.main};
+      border: 1px solid ${ColorTokens.status.inProgress.border};
+    }
+    
+    .status-resolved {
+      background-color: ${ColorTokens.status.resolved.bg};
+      color: ${ColorTokens.status.resolved.main};
+      border: 1px solid ${ColorTokens.status.resolved.border};
+    }
+    
+    .status-closed {
+      background-color: ${ColorTokens.status.closed.bg};
+      color: ${ColorTokens.status.closed.main};
+      border: 1px solid ${ColorTokens.status.closed.border};
+    }
+    
+    .divider {
+      height: 1px;
+      background: ${ColorTokens.border.default};
+      margin: ${SpacingTokens[6]} 0;
+    }
+    
+    .section {
+      margin-bottom: ${SpacingTokens[6]};
 
       h3 {
         font-size: 16px;
-        font-weight: 500;
-        margin-bottom: 12px;
+        font-weight: 600;
+        margin-bottom: ${SpacingTokens[3]};
+        color: ${ColorTokens.text.primary};
       }
     }
 
+    .description-text {
+      margin: 0;
+      font-size: 15px;
+      color: ${ColorTokens.text.secondary};
+      line-height: 1.6;
+    }
+    
     .tags {
       display: flex;
       flex-wrap: wrap;
-      gap: 8px;
+      gap: ${SpacingTokens[2]};
+    }
+    
+    .tag {
+      padding: ${SpacingTokens[1]} ${SpacingTokens[2.5]};
+      background: ${ColorTokens.neutral.gray[100]};
+      color: ${ColorTokens.text.secondary};
+      border-radius: ${RadiusTokens.md};
+      font-size: 12px;
+      font-weight: 500;
+      border: 1px solid ${ColorTokens.border.light};
     }
 
     .assignee {
       display: flex;
       align-items: center;
-      gap: 8px;
+      gap: ${SpacingTokens[3]};
+    }
+    
+    .avatar-placeholder {
+      width: 48px;
+      height: 48px;
+      border-radius: ${RadiusTokens.full};
+      background: ${ColorTokens.primary[100]};
+      color: ${ColorTokens.primary[700]};
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 700;
+      font-size: 18px;
+      border: 2px solid ${ColorTokens.primary[200]};
+      flex-shrink: 0;
+    }
+    
+    .assignee-info {
+      display: flex;
+      flex-direction: column;
+      gap: ${SpacingTokens[1]};
+    }
+    
+    .assignee-info .name {
+      font-size: 14px;
+      font-weight: 600;
+      color: ${ColorTokens.text.primary};
+    }
+    
+    .assignee-info .email {
+      font-size: 13px;
+      color: ${ColorTokens.text.tertiary};
+    }
+    
+    .triage-section {
+      background: ${ColorTokens.primary[50]};
+      padding: ${SpacingTokens[6]};
+      border-radius: ${RadiusTokens.lg};
+      border: 1px solid ${ColorTokens.primary[100]};
+      margin: 0;
+    }
+    
+    .triage-loading {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: ${SpacingTokens[3]};
+      padding: ${SpacingTokens[6]};
+    }
+    
+    .triage-loading p {
+      margin: 0;
+      color: ${ColorTokens.text.secondary};
+      font-size: 14px;
+    }
+    
+    .triage-button {
+      padding: ${SpacingTokens[2.5]} ${SpacingTokens[5]};
+      background: ${ColorTokens.primary.main};
+      color: white;
+      border: none;
+      border-radius: ${RadiusTokens.md};
+      font-weight: 600;
+      font-size: 14px;
+      cursor: pointer;
+      transition: all 200ms cubic-bezier(0.4, 0, 0.2, 1);
+      box-shadow: ${ShadowTokens.sm};
+      display: flex;
+      align-items: center;
+      gap: ${SpacingTokens[2]};
+    }
+    
+    .triage-button:hover {
+      background: ${ColorTokens.primary[700]};
+      transform: translateY(-1px);
+      box-shadow: ${ShadowTokens.md};
     }
 
     .triage-suggestion {
@@ -325,7 +521,7 @@ import { AuthService } from '../../../core/services/auth.service';
 export class TicketDetailComponent implements OnInit {
   statusChanges = signal<TicketStatusChange[]>([]); // status change history
   statusChangesLoading = signal(false);
-  triageSuggestion = signal<TriageSuggestion | null>(null); // latest AI suggestion
+  triageSuggestion = signal<ServiceTriageSuggestion | null>(null); // latest AI suggestion
   triageLoading = signal(false);
   externalUser = signal<ExternalUserResponse | null>(null); // external profile data
   externalUserLoading = signal(false);
@@ -413,6 +609,27 @@ export class TicketDetailComponent implements OnInit {
   rejectTriage(): void {
     this.triageSuggestion.set(null);
     this.snackBar.open('Triage suggestion rejected', 'Close', { duration: 2000 });
+  }
+  
+  formatStatus(status: string): string {
+    return status.replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase());
+  }
+  
+  convertTriageSuggestion(serviceSuggestion: ServiceTriageSuggestion): TriageSuggestion {
+    return {
+      suggested_priority: serviceSuggestion.suggested_priority as 'low' | 'medium' | 'high',
+      suggested_status: serviceSuggestion.suggested_status as 'open' | 'in_progress' | 'resolved' | 'closed',
+      summary: serviceSuggestion.summary,
+      confidence: serviceSuggestion.confidence
+    };
+  }
+  
+  getAssigneeInitial(): string {
+    const ticket = this.ticket();
+    if (!ticket || !ticket.assignee || !ticket.assignee.name) {
+      return '?';
+    }
+    return ticket.assignee.name.charAt(0).toUpperCase();
   }
 
   loadExternalUser(ticketId: number): void {

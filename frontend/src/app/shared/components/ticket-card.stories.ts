@@ -16,29 +16,48 @@ const mockTicket: TicketCardData = {
 };
 
 const meta: Meta<TicketCardComponent> = {
-  title: 'Design System/TicketCard',
+  title: 'Design System/Components/Ticket Card',
   component: TicketCardComponent,
   tags: ['autodocs'],
   argTypes: {
     ticket: {
       control: 'object',
       description: 'Ticket data to display',
+      table: {
+        type: { summary: 'TicketCardData' },
+      },
     },
     clickable: {
       control: 'boolean',
       description: 'Whether the card is clickable',
+      table: {
+        type: { summary: 'boolean' },
+        defaultValue: { summary: 'true' },
+      },
     },
     loading: {
       control: 'boolean',
       description: 'Loading state',
+      table: {
+        type: { summary: 'boolean' },
+        defaultValue: { summary: 'false' },
+      },
     },
     error: {
       control: 'boolean',
       description: 'Error state',
+      table: {
+        type: { summary: 'boolean' },
+        defaultValue: { summary: 'false' },
+      },
     },
     errorMessage: {
       control: 'text',
       description: 'Error message to display',
+      table: {
+        type: { summary: 'string' },
+        defaultValue: { summary: 'Failed to load ticket' },
+      },
     },
     cardClick: {
       action: 'cardClick',
@@ -48,7 +67,7 @@ const meta: Meta<TicketCardComponent> = {
   parameters: {
     docs: {
       description: {
-        component: 'A card component for displaying ticket summary with priority, status, tags, and assignee information.',
+        component: 'A modern card component for displaying ticket information with priority badges, status indicators, tags, and assignee details. Features smooth hover animations and multiple states.',
       },
     },
   },
@@ -89,6 +108,28 @@ export const MediumPriority: Story = {
       status: 'resolved',
       title: 'Improve UI responsiveness',
       description: 'Make the dashboard more responsive on mobile devices.',
+    },
+  },
+};
+
+// Critical priority ticket
+export const CriticalPriority: Story = {
+  args: {
+    ticket: {
+      ...mockTicket,
+      id: 9999,
+      priority: 'critical',
+      status: 'in_progress',
+      title: 'Database connection failure in production',
+      description: 'Critical issue: Production database is intermittently losing connections, affecting all users.',
+      tags: ['critical', 'database', 'production'],
+    },
+  },
+  parameters: {
+    docs: {
+      description: {
+        story: 'Critical priority ticket with urgent status.',
+      },
     },
   },
 };
@@ -221,6 +262,67 @@ export const AllStatuses: Story = {
     docs: {
       description: {
         story: 'Showcase of all ticket statuses.',
+      },
+    },
+  },
+};
+
+// All priorities showcase
+export const AllPriorities: Story = {
+  render: (args) => ({
+    props: args,
+    template: `
+      <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 20px; padding: 20px; background: #f9fafb;">
+        <app-ticket-card [ticket]="{
+          id: 1001,
+          title: 'Update documentation',
+          description: 'Documentation needs to be updated to reflect recent API changes.',
+          priority: 'low',
+          status: 'open',
+          tags: ['docs'],
+          assignee: { name: 'Sarah Johnson', email: 'sarah@example.com' },
+          created_at: '2025-11-20T14:30:00Z'
+        }"></app-ticket-card>
+        
+        <app-ticket-card [ticket]="{
+          id: 2002,
+          title: 'Improve UI responsiveness',
+          description: 'Make the dashboard more responsive on tablet devices.',
+          priority: 'medium',
+          status: 'in_progress',
+          tags: ['ui', 'enhancement'],
+          assignee: { name: 'Alex Kim', email: 'alex@example.com' },
+          created_at: '2025-11-19T11:00:00Z'
+        }"></app-ticket-card>
+        
+        <app-ticket-card [ticket]="{
+          id: 3003,
+          title: 'Login page not responsive',
+          description: 'Users experiencing issues on mobile devices when logging in.',
+          priority: 'high',
+          status: 'open',
+          tags: ['bug', 'mobile', 'auth'],
+          assignee: { name: 'John Doe', email: 'john@example.com' },
+          created_at: '2025-11-18T09:15:00Z'
+        }"></app-ticket-card>
+        
+        <app-ticket-card [ticket]="{
+          id: 9999,
+          title: 'Database connection failure',
+          description: 'Critical: Production database losing connections intermittently.',
+          priority: 'critical',
+          status: 'in_progress',
+          tags: ['critical', 'database', 'production'],
+          assignee: { name: 'Mike Chen', email: 'mike@example.com' },
+          created_at: '2025-11-17T08:00:00Z'
+        }"></app-ticket-card>
+      </div>
+    `,
+  }),
+  parameters: {
+    docs: {
+      description: {
+        story: 'Showcase of all priority levels in a grid layout.',
       },
     },
   },

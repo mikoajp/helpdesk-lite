@@ -26,7 +26,7 @@ import { AuthService } from './core/services/auth.service';
     main {
       flex: 1;
       overflow-y: auto;
-      background-color: #f5f5f5;
+      background-color: #f9fafb;
     }
   `]
 })

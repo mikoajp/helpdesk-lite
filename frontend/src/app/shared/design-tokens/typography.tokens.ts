@@ -1,8 +1,12 @@
 // Design Tokens - Typography
+// Modern typography system with Inter font family
 export const TypographyTokens = {
   fontFamily: {
-    primary: '"Roboto", "Helvetica Neue", sans-serif',
-    mono: '"Courier New", monospace',
+    sans: '"Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif',
+    serif: '"Merriweather", Georgia, Cambria, "Times New Roman", Times, serif',
+    mono: '"JetBrains Mono", "Fira Code", ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace',
+    primary: '"Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif',
+    display: '"Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif',
   },
   
   fontSize: {
@@ -14,20 +18,41 @@ export const TypographyTokens = {
     '2xl': '24px',
     '3xl': '30px',
     '4xl': '36px',
+    '5xl': '48px',
+    '6xl': '60px',
+    '7xl': '72px',
+    '8xl': '96px',
+    '9xl': '128px',
   },
   
   fontWeight: {
+    thin: 100,
+    extralight: 200,
     light: 300,
     normal: 400,
     medium: 500,
+    semibold: 600,
     bold: 700,
+    extrabold: 800,
+    black: 900,
   },
   
   lineHeight: {
-    tight: 1.2,
+    none: 1,
+    tight: 1.25,
+    snug: 1.375,
     normal: 1.5,
-    relaxed: 1.75,
+    relaxed: 1.625,
     loose: 2,
+  },
+  
+  letterSpacing: {
+    tighter: '-0.05em',
+    tight: '-0.025em',
+    normal: '0',
+    wide: '0.025em',
+    wider: '0.05em',
+    widest: '0.1em',
   },
 } as const;
 

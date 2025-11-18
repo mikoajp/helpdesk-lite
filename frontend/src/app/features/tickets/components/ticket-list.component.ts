@@ -1,10 +1,8 @@
 import { Component, OnInit, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
-import { MatCardModule } from '@angular/material/card';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
-import { MatChipsModule } from '@angular/material/chips';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatSelectModule } from '@angular/material/select';
 import { MatFormFieldModule } from '@angular/material/form-field';
@@ -12,6 +10,8 @@ import { MatInputModule } from '@angular/material/input';
 import { FormsModule } from '@angular/forms';
 import { TicketsService, Ticket, TicketFilters } from '../services/tickets.service';
 import { AuthService } from '../../../core/services/auth.service';
+import { TicketCardComponent, TicketCardData } from '../../../shared/components/ticket-card.component';
+import { ColorTokens, SpacingTokens, RadiusTokens, ShadowTokens } from '../../../shared/design-tokens';
 
 @Component({
   selector: 'app-ticket-list',
@@ -19,14 +19,13 @@ import { AuthService } from '../../../core/services/auth.service';
   imports: [
     CommonModule,
     FormsModule,
-    MatCardModule,
     MatButtonModule,
     MatIconModule,
-    MatChipsModule,
     MatProgressSpinnerModule,
     MatSelectModule,
     MatFormFieldModule,
-    MatInputModule
+    MatInputModule,
+    TicketCardComponent
   ],
   template: `
     <div class="ticket-list-container">
@@ -88,42 +87,11 @@ import { AuthService } from '../../../core/services/auth.service';
       } @else {
         <div class="tickets-grid">
           @for (ticket of ticketsService.tickets(); track ticket.id) {
-            <mat-card class="ticket-card" (click)="viewTicket(ticket.id)">
-              <mat-card-header>
-                <mat-card-title>{{ ticket.title }}</mat-card-title>
-                <mat-card-subtitle>
-                  #{{ ticket.id }} • Created {{ ticket.created_at | date:'short' }}
-                </mat-card-subtitle>
-              </mat-card-header>
-              
-              <mat-card-content>
-                <p class="description">{{ ticket.description }}</p>
-                
-                <div class="badges">
-                  <mat-chip [class]="'priority-' + ticket.priority">
-                    {{ ticket.priority }}
-                  </mat-chip>
-                  <mat-chip [class]="'status-' + ticket.status">
-                    {{ ticket.status | titlecase }}
-                  </mat-chip>
-                </div>
-
-                @if (ticket.tags && ticket.tags.length > 0) {
-                  <div class="tags">
-                    @for (tag of ticket.tags; track tag) {
-                      <mat-chip>{{ tag }}</mat-chip>
-                    }
-                  </div>
-                }
-
-                @if (ticket.assignee) {
-                  <div class="assignee">
-                    <mat-icon>person</mat-icon>
-                    <span>{{ ticket.assignee.name }}</span>
-                  </div>
-                }
-              </mat-card-content>
-            </mat-card>
+            <app-ticket-card 
+              [ticket]="toTicketCardData(ticket)"
+              [clickable]="true"
+              (cardClick)="viewTicket($event)">
+            </app-ticket-card>
           }
         </div>
       }
@@ -131,25 +99,62 @@ import { AuthService } from '../../../core/services/auth.service';
   `,
   styles: [`
     .ticket-list-container {
-      padding: 24px;
-      max-width: 1200px;
+      padding: ${SpacingTokens[8]};
+      max-width: 1400px;
       margin: 0 auto;
+      background: ${ColorTokens.background.secondary};
+      min-height: 100vh;
     }
 
     .header {
       display: flex;
       justify-content: space-between;
       align-items: center;
-      margin-bottom: 24px;
+      margin-bottom: ${SpacingTokens[8]};
+    }
+    
+    .header h1 {
+      font-size: 32px;
+      font-weight: 700;
+      color: ${ColorTokens.text.primary};
+      margin: 0;
+    }
+    
+    .header button {
+      padding: ${SpacingTokens[2.5]} ${SpacingTokens[6]};
+      background: ${ColorTokens.primary.main};
+      color: white;
+      border: none;
+      border-radius: ${RadiusTokens.md};
+      font-weight: 600;
+      font-size: 14px;
+      cursor: pointer;
+      transition: all 200ms cubic-bezier(0.4, 0, 0.2, 1);
+      box-shadow: ${ShadowTokens.sm};
+      display: flex;
+      align-items: center;
+      gap: ${SpacingTokens[2]};
+    }
+    
+    .header button:hover {
+      background: ${ColorTokens.primary[700]};
+      transform: translateY(-1px);
+      box-shadow: ${ShadowTokens.md};
     }
 
     .filters {
       display: flex;
-      gap: 16px;
-      margin-bottom: 24px;
+      gap: ${SpacingTokens[4]};
+      margin-bottom: ${SpacingTokens[6]};
+      flex-wrap: wrap;
+      background: ${ColorTokens.background.paper};
+      padding: ${SpacingTokens[6]};
+      border-radius: ${RadiusTokens.lg};
+      box-shadow: ${ShadowTokens.sm};
       
       mat-form-field {
         min-width: 200px;
+        flex: 1;
       }
     }
 
@@ -158,84 +163,52 @@ import { AuthService } from '../../../core/services/auth.service';
       flex-direction: column;
       align-items: center;
       justify-content: center;
-      padding: 48px;
+      padding: ${SpacingTokens[16]};
+      background: ${ColorTokens.background.paper};
+      border-radius: ${RadiusTokens.lg};
+      box-shadow: ${ShadowTokens.sm};
       
       mat-icon {
-        font-size: 48px;
-        width: 48px;
-        height: 48px;
-        margin-bottom: 16px;
+        font-size: 64px;
+        width: 64px;
+        height: 64px;
+        margin-bottom: ${SpacingTokens[4]};
+        color: ${ColorTokens.neutral.gray[400]};
       }
+      
+      p {
+        color: ${ColorTokens.text.secondary};
+        font-size: 16px;
+      }
+    }
+    
+    .error mat-icon {
+      color: ${ColorTokens.error.main};
     }
 
     .tickets-grid {
       display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
-      gap: 16px;
-    }
-
-    .ticket-card {
-      cursor: pointer;
-      transition: transform 0.2s, box-shadow 0.2s;
-      
-      &:hover {
-        transform: translateY(-4px);
-        box-shadow: 0 8px 16px rgba(0,0,0,0.1);
-      }
-    }
-
-    .description {
-      margin: 16px 0;
-      overflow: hidden;
-      text-overflow: ellipsis;
-      display: -webkit-box;
-      -webkit-line-clamp: 2;
-      -webkit-box-orient: vertical;
-    }
-
-    .badges {
-      display: flex;
-      gap: 8px;
-      margin-bottom: 8px;
-    }
-
-    .priority-low { background-color: #4caf50; color: white; }
-    .priority-medium { background-color: #ff9800; color: white; }
-    .priority-high { background-color: #f44336; color: white; }
-
-    .status-open { background-color: #2196f3; color: white; }
-    .status-in_progress { background-color: #ff9800; color: white; }
-    .status-resolved { background-color: #4caf50; color: white; }
-    .status-closed { background-color: #9e9e9e; color: white; }
-
-    .tags {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 4px;
-      margin-top: 8px;
-    }
-
-    .assignee {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      margin-top: 8px;
-      color: #666;
-      
-      mat-icon {
-        font-size: 18px;
-        width: 18px;
-        height: 18px;
-      }
+      grid-template-columns: repeat(auto-fill, minmax(380px, 1fr));
+      gap: ${SpacingTokens[6]};
     }
 
     @media (max-width: 768px) {
+      .ticket-list-container {
+        padding: ${SpacingTokens[4]};
+      }
+      
       .tickets-grid {
         grid-template-columns: 1fr;
       }
       
       .filters {
         flex-direction: column;
+      }
+      
+      .header {
+        flex-direction: column;
+        gap: ${SpacingTokens[4]};
+        align-items: stretch;
       }
     }
   `]
@@ -267,5 +240,21 @@ export class TicketListComponent implements OnInit {
 
   createTicket(): void {
     this.router.navigate(['/tickets/new']);
+  }
+  
+  toTicketCardData(ticket: Ticket): TicketCardData {
+    return {
+      id: ticket.id,
+      title: ticket.title,
+      description: ticket.description,
+      priority: ticket.priority as 'low' | 'medium' | 'high' | 'critical',
+      status: ticket.status as 'open' | 'in_progress' | 'resolved' | 'closed',
+      tags: ticket.tags,
+      assignee: ticket.assignee ? {
+        name: ticket.assignee.name,
+        email: ticket.assignee.email
+      } : undefined,
+      created_at: ticket.created_at
+    };
   }
 }

@@ -1,20 +1,19 @@
 import { Component, Input, Output, EventEmitter } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { MatCardModule } from '@angular/material/card';
-import { MatChipsModule } from '@angular/material/chips';
-import { MatIconModule } from '@angular/material/icon';
 import { PriorityBadgeComponent } from './priority-badge.component';
+import { ColorTokens, SpacingTokens, RadiusTokens, ShadowTokens } from '../design-tokens';
 
 export interface TicketCardData {
   id: number;
   title: string;
   description: string;
-  priority: 'low' | 'medium' | 'high';
+  priority: 'low' | 'medium' | 'high' | 'critical';
   status: 'open' | 'in_progress' | 'resolved' | 'closed';
   tags?: string[];
   assignee?: {
     name: string;
     email?: string;
+    avatar?: string;
   };
   created_at: string;
 }
@@ -24,13 +23,10 @@ export interface TicketCardData {
   standalone: true,
   imports: [
     CommonModule,
-    MatCardModule,
-    MatChipsModule,
-    MatIconModule,
     PriorityBadgeComponent
   ],
   template: `
-    <mat-card 
+    <div 
       class="ticket-card"
       [class.clickable]="clickable"
       [class.loading]="loading"
@@ -39,155 +35,288 @@ export interface TicketCardData {
       
       @if (loading) {
         <div class="loading-overlay">
-          <mat-icon class="spinner">refresh</mat-icon>
+          <div class="spinner"></div>
           <p>Loading...</p>
         </div>
       } @else if (error) {
         <div class="error-overlay">
-          <mat-icon>error</mat-icon>
+          <svg class="error-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+            <circle cx="12" cy="12" r="10" stroke-width="2"/>
+            <line x1="12" y1="8" x2="12" y2="12" stroke-width="2"/>
+            <line x1="12" y1="16" x2="12.01" y2="16" stroke-width="2"/>
+          </svg>
           <p>{{ errorMessage }}</p>
         </div>
       } @else {
-        <mat-card-header>
-          <mat-card-title>{{ ticket.title }}</mat-card-title>
-          <mat-card-subtitle>
-            #{{ ticket.id }} • {{ ticket.created_at | date:'short' }}
-          </mat-card-subtitle>
-        </mat-card-header>
+        <div class="card-header">
+          <div class="header-top">
+            <span class="ticket-id">#{{ ticket.id }}</span>
+            <span class="status-badge status-{{ ticket.status }}">
+              {{ formatStatus(ticket.status) }}
+            </span>
+          </div>
+          <h3 class="ticket-title">{{ ticket.title }}</h3>
+          <p class="ticket-meta">{{ ticket.created_at | date:'MMM d, y' }}</p>
+        </div>
         
-        <mat-card-content>
+        <div class="card-content">
           <p class="description">{{ ticket.description }}</p>
           
-          <div class="badges">
-            <app-priority-badge [priority]="ticket.priority"></app-priority-badge>
-            <mat-chip [class]="'status-' + ticket.status">
-              {{ formatStatus(ticket.status) }}
-            </mat-chip>
-          </div>
-
-          @if (ticket.tags && ticket.tags.length > 0) {
-            <div class="tags">
-              @for (tag of ticket.tags; track tag) {
-                <mat-chip class="tag-chip">{{ tag }}</mat-chip>
+          <div class="card-footer">
+            <div class="footer-left">
+              <app-priority-badge [priority]="ticket.priority"></app-priority-badge>
+              
+              @if (ticket.tags && ticket.tags.length > 0) {
+                <div class="tags">
+                  @for (tag of ticket.tags; track tag) {
+                    <span class="tag">{{ tag }}</span>
+                  }
+                </div>
               }
             </div>
-          }
 
-          @if (ticket.assignee) {
-            <div class="assignee">
-              <mat-icon>person</mat-icon>
-              <span>{{ ticket.assignee.name }}</span>
-            </div>
-          }
-        </mat-card-content>
+            @if (ticket.assignee) {
+              <div class="assignee">
+                @if (ticket.assignee.avatar) {
+                  <img [src]="ticket.assignee.avatar" [alt]="ticket.assignee.name" class="avatar">
+                } @else {
+                  <div class="avatar-placeholder">
+                    {{ ticket.assignee.name.charAt(0).toUpperCase() }}
+                  </div>
+                }
+                <span class="assignee-name">{{ ticket.assignee.name }}</span>
+              </div>
+            }
+          </div>
+        </div>
       }
-    </mat-card>
+    </div>
   `,
   styles: [`
     .ticket-card {
       position: relative;
-      min-height: 200px;
-      transition: all 0.2s ease-in-out;
-      
-      &.clickable {
-        cursor: pointer;
-        
-        &:hover {
-          transform: translateY(-4px);
-          box-shadow: 0 8px 16px rgba(0,0,0,0.1);
-        }
-      }
-      
-      &.loading, &.error {
-        display: flex;
-        align-items: center;
-        justify-content: center;
-      }
+      background: ${ColorTokens.background.paper};
+      border: 1px solid ${ColorTokens.border.default};
+      border-radius: ${RadiusTokens.lg};
+      padding: ${SpacingTokens[6]};
+      min-height: 240px;
+      transition: all 200ms cubic-bezier(0.4, 0, 0.2, 1);
+      box-shadow: ${ShadowTokens.sm};
+    }
+    
+    .ticket-card.clickable {
+      cursor: pointer;
+    }
+    
+    .ticket-card.clickable:hover {
+      transform: translateY(-2px);
+      box-shadow: ${ShadowTokens.lg};
+      border-color: ${ColorTokens.primary[300]};
+    }
+    
+    .ticket-card.loading,
+    .ticket-card.error {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 240px;
     }
 
-    .loading-overlay, .error-overlay {
+    .loading-overlay,
+    .error-overlay {
       display: flex;
       flex-direction: column;
       align-items: center;
       justify-content: center;
-      padding: 48px 24px;
       text-align: center;
-      
-      mat-icon {
-        font-size: 48px;
-        width: 48px;
-        height: 48px;
-        margin-bottom: 16px;
-      }
-      
-      p {
-        margin: 0;
-        color: rgba(0, 0, 0, 0.6);
-      }
+      width: 100%;
     }
-
-    .loading-overlay mat-icon {
-      animation: spin 1s linear infinite;
-      color: #3f51b5;
+    
+    .spinner {
+      width: 40px;
+      height: 40px;
+      border: 3px solid ${ColorTokens.border.default};
+      border-top-color: ${ColorTokens.primary.main};
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+      margin-bottom: ${SpacingTokens[3]};
     }
-
-    .error-overlay mat-icon {
-      color: #f44336;
-    }
-
+    
     @keyframes spin {
-      from { transform: rotate(0deg); }
       to { transform: rotate(360deg); }
     }
+    
+    .loading-overlay p {
+      margin: 0;
+      color: ${ColorTokens.text.secondary};
+      font-size: 14px;
+    }
+    
+    .error-icon {
+      width: 48px;
+      height: 48px;
+      color: ${ColorTokens.error.main};
+      margin-bottom: ${SpacingTokens[3]};
+    }
+    
+    .error-overlay p {
+      margin: 0;
+      color: ${ColorTokens.text.secondary};
+      font-size: 14px;
+    }
 
-    .description {
-      margin: 16px 0;
+    .card-header {
+      margin-bottom: ${SpacingTokens[4]};
+    }
+    
+    .header-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: ${SpacingTokens[3]};
+    }
+    
+    .ticket-id {
+      font-size: 13px;
+      font-weight: 600;
+      color: ${ColorTokens.text.tertiary};
+      font-family: 'JetBrains Mono', monospace;
+    }
+    
+    .status-badge {
+      padding: ${SpacingTokens[1]} ${SpacingTokens[3]};
+      border-radius: ${RadiusTokens.full};
+      font-size: 12px;
+      font-weight: 600;
+      text-transform: capitalize;
+      letter-spacing: 0.025em;
+    }
+    
+    .status-open {
+      background-color: ${ColorTokens.status.open.bg};
+      color: ${ColorTokens.status.open.main};
+      border: 1px solid ${ColorTokens.status.open.border};
+    }
+    
+    .status-in_progress {
+      background-color: ${ColorTokens.status.inProgress.bg};
+      color: ${ColorTokens.status.inProgress.main};
+      border: 1px solid ${ColorTokens.status.inProgress.border};
+    }
+    
+    .status-resolved {
+      background-color: ${ColorTokens.status.resolved.bg};
+      color: ${ColorTokens.status.resolved.main};
+      border: 1px solid ${ColorTokens.status.resolved.border};
+    }
+    
+    .status-closed {
+      background-color: ${ColorTokens.status.closed.bg};
+      color: ${ColorTokens.status.closed.main};
+      border: 1px solid ${ColorTokens.status.closed.border};
+    }
+    
+    .ticket-title {
+      margin: 0 0 ${SpacingTokens[2]} 0;
+      font-size: 18px;
+      font-weight: 600;
+      color: ${ColorTokens.text.primary};
+      line-height: 1.4;
       overflow: hidden;
       text-overflow: ellipsis;
       display: -webkit-box;
       -webkit-line-clamp: 2;
       -webkit-box-orient: vertical;
-      line-height: 1.5;
+    }
+    
+    .ticket-meta {
+      margin: 0;
+      font-size: 13px;
+      color: ${ColorTokens.text.tertiary};
     }
 
-    .badges {
+    .card-content {
       display: flex;
-      gap: 8px;
-      margin-bottom: 8px;
-      flex-wrap: wrap;
+      flex-direction: column;
+      gap: ${SpacingTokens[4]};
     }
-
-    .status-open { background-color: #2196f3; color: white; }
-    .status-in_progress { background-color: #ff9800; color: white; }
-    .status-resolved { background-color: #4caf50; color: white; }
-    .status-closed { background-color: #9e9e9e; color: white; }
-
+    
+    .description {
+      margin: 0;
+      font-size: 14px;
+      color: ${ColorTokens.text.secondary};
+      line-height: 1.6;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+    }
+    
+    .card-footer {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-end;
+      gap: ${SpacingTokens[3]};
+      margin-top: auto;
+    }
+    
+    .footer-left {
+      display: flex;
+      flex-direction: column;
+      gap: ${SpacingTokens[3]};
+    }
+    
     .tags {
       display: flex;
       flex-wrap: wrap;
-      gap: 4px;
-      margin-top: 8px;
-      
-      .tag-chip {
-        font-size: 11px;
-        min-height: 24px;
-        padding: 4px 8px;
-      }
+      gap: ${SpacingTokens[2]};
     }
-
+    
+    .tag {
+      padding: ${SpacingTokens[1]} ${SpacingTokens[2.5]};
+      background: ${ColorTokens.neutral.gray[100]};
+      color: ${ColorTokens.text.secondary};
+      border-radius: ${RadiusTokens.md};
+      font-size: 12px;
+      font-weight: 500;
+      border: 1px solid ${ColorTokens.border.light};
+    }
+    
     .assignee {
       display: flex;
       align-items: center;
-      gap: 8px;
-      margin-top: 12px;
-      color: rgba(0, 0, 0, 0.6);
+      gap: ${SpacingTokens[2]};
+    }
+    
+    .avatar,
+    .avatar-placeholder {
+      width: 32px;
+      height: 32px;
+      border-radius: ${RadiusTokens.full};
+      flex-shrink: 0;
+    }
+    
+    .avatar {
+      object-fit: cover;
+      border: 2px solid ${ColorTokens.border.default};
+    }
+    
+    .avatar-placeholder {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: ${ColorTokens.primary[100]};
+      color: ${ColorTokens.primary[700]};
+      font-weight: 600;
       font-size: 14px;
-      
-      mat-icon {
-        font-size: 18px;
-        width: 18px;
-        height: 18px;
-      }
+      border: 2px solid ${ColorTokens.primary[200]};
+    }
+    
+    .assignee-name {
+      font-size: 13px;
+      font-weight: 500;
+      color: ${ColorTokens.text.secondary};
     }
   `]
 })
